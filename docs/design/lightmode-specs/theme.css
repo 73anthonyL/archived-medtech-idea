@@ -472,3 +472,210 @@ body { min-height: 100vh; }
   .tier-grid { grid-template-columns: 1fr; }
   .adm-select-row { grid-template-columns: 1fr; }
 }
+
+
+/* ============================================
+   LIGHT THEME
+   ============================================ */
+:root[data-theme="light"] {
+  --bg: #f4f6fb;
+  --bg-2: #eef2f8;
+  --surface: #ffffff;
+  --surface-2: #f5f7fb;
+  --surface-3: #eef2f8;
+  --border: #e2e8f0;
+  --border-2: #cbd5e1;
+  --text-1: #0b1220;
+  --text-2: #1e293b;
+  --text-3: #475569;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+
+  --accent-blue: #0284c7;
+  --accent-blue-2: #2563eb;
+  --accent-blue-deep: #1d4ed8;
+  --accent-cyan: #0891b2;
+  --accent-info: #7c3aed;
+
+  --risk-high: #dc2626;
+  --risk-high-2: #b91c1c;
+  --risk-mod: #d97706;
+  --risk-mod-2: #b45309;
+  --risk-low: #16a34a;
+  --risk-low-2: #15803d;
+
+  --gradient-accent: linear-gradient(90deg, #1d4ed8 0%, #2563eb 45%, #0891b2 100%);
+}
+
+/* Body + base type tuning for light */
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(2,132,199,0.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(124,58,237,0.05), transparent 60%),
+    var(--bg);
+  color: var(--text-2);
+}
+
+/* Sidebar */
+:root[data-theme="light"] .sidebar {
+  background: linear-gradient(180deg, #ffffff 0%, #f7f9fd 100%);
+  border-right: 1px solid var(--border);
+}
+:root[data-theme="light"] .sidebar-logo { box-shadow: 0 4px 14px rgba(37,99,235,0.18); }
+:root[data-theme="light"] .sidebar-logo::after { background: #ffffff; }
+:root[data-theme="light"] .nav-item:hover { background: rgba(2,132,199,0.06); }
+:root[data-theme="light"] .nav-item.active {
+  background: linear-gradient(90deg, rgba(2,132,199,0.10), rgba(2,132,199,0.02));
+  border-color: rgba(2,132,199,0.30);
+}
+:root[data-theme="light"] .sidebar-demo {
+  background: rgba(2,132,199,0.06); border-color: rgba(2,132,199,0.25);
+}
+:root[data-theme="light"] .topnav {
+  background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.85) 100%);
+}
+
+/* Cards / surfaces */
+:root[data-theme="light"] .card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 0 rgba(15,23,42,0.02), 0 8px 24px -16px rgba(15,23,42,0.10);
+}
+:root[data-theme="light"] .kpi-card {
+  background: var(--surface);
+  box-shadow: 0 1px 0 rgba(15,23,42,0.02), 0 8px 24px -16px rgba(15,23,42,0.10);
+}
+
+/* Hero */
+:root[data-theme="light"] .hero-card {
+  background:
+    radial-gradient(900px 400px at 100% -20%, rgba(2,132,199,0.10), transparent 60%),
+    radial-gradient(700px 300px at -10% 120%, rgba(124,58,237,0.07), transparent 60%),
+    var(--surface);
+}
+:root[data-theme="light"] .hero-stat,
+:root[data-theme="light"] .hero-watchlist,
+:root[data-theme="light"] .mini-stat,
+:root[data-theme="light"] .trend-explain {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+/* Demo pill */
+:root[data-theme="light"] .demo-mode-pill {
+  background: rgba(2,132,199,0.08); border-color: rgba(2,132,199,0.35); color: var(--accent-blue);
+}
+
+/* Inputs */
+:root[data-theme="light"] .input,
+:root[data-theme="light"] .select {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+  box-shadow: inset 0 1px 0 rgba(15,23,42,0.02);
+}
+:root[data-theme="light"] .input:focus,
+:root[data-theme="light"] .select:focus {
+  background-color: var(--surface);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(2,132,199,0.15);
+}
+:root[data-theme="light"] .select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M3 4.5L6 7.5L9 4.5' stroke='%23475569' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
+}
+:root[data-theme="light"] .segseg { background: var(--surface-2); border-color: var(--border); }
+:root[data-theme="light"] .segseg-btn.active { background: #ffffff; border-color: var(--border-2); box-shadow: 0 1px 0 rgba(15,23,42,0.04), 0 2px 8px rgba(15,23,42,0.06); }
+:root[data-theme="light"] .segseg-btn.active-high { color: var(--risk-high); border-color: rgba(220,38,38,0.30); background: rgba(220,38,38,0.06); box-shadow: none; }
+:root[data-theme="light"] .segseg-btn.active-moderate { color: var(--risk-mod); border-color: rgba(217,119,6,0.30); background: rgba(217,119,6,0.06); box-shadow: none; }
+:root[data-theme="light"] .segseg-btn.active-low { color: var(--risk-low); border-color: rgba(22,163,74,0.30); background: rgba(22,163,74,0.06); box-shadow: none; }
+
+/* Badges */
+:root[data-theme="light"] .risk-badge { font-weight: 700; }
+:root[data-theme="light"] .status-pill.high {
+  background: rgba(220,38,38,0.08); color: var(--risk-high); border-color: rgba(220,38,38,0.30);
+}
+:root[data-theme="light"] .status-pill.low {
+  background: rgba(2,132,199,0.08); color: var(--accent-blue); border-color: rgba(2,132,199,0.30);
+}
+:root[data-theme="light"] .status-pill.normal {
+  background: rgba(22,163,74,0.08); color: var(--risk-low); border-color: rgba(22,163,74,0.30);
+}
+:root[data-theme="light"] .aki-tag {
+  background: rgba(2,132,199,0.09); border-color: rgba(2,132,199,0.28); color: var(--accent-blue);
+}
+:root[data-theme="light"] .info-tag {
+  background: rgba(124,58,237,0.07); border-color: rgba(124,58,237,0.28); color: var(--accent-info);
+}
+
+/* Table */
+:root[data-theme="light"] .table-card { background: var(--surface); }
+:root[data-theme="light"] .patient-table th,
+:root[data-theme="light"] .explorer-table th,
+:root[data-theme="light"] .arch-table th {
+  background: #f8fafc; color: var(--text-muted); border-bottom: 1px solid var(--border);
+}
+:root[data-theme="light"] .patient-table td,
+:root[data-theme="light"] .explorer-table td,
+:root[data-theme="light"] .arch-table td {
+  border-bottom: 1px solid #eef2f8;
+}
+:root[data-theme="light"] .patient-table tbody tr:hover,
+:root[data-theme="light"] .explorer-table tbody tr:hover { background: #f6f9ff; }
+:root[data-theme="light"] .row-high:hover { background: rgba(220,38,38,0.05) !important; }
+:root[data-theme="light"] .row-moderate:hover { background: rgba(217,119,6,0.05) !important; }
+:root[data-theme="light"] .row-low:hover { background: rgba(22,163,74,0.04) !important; }
+:root[data-theme="light"] .row-info:hover { background: rgba(2,132,199,0.04) !important; }
+:root[data-theme="light"] .row-selected { background: rgba(2,132,199,0.06) !important; }
+:root[data-theme="light"] .score-bar { background: rgba(15,23,42,0.08); }
+:root[data-theme="light"] .rail-low { background: linear-gradient(180deg, var(--risk-low), var(--risk-low-2)); }
+:root[data-theme="light"] .rail-normal { background: #cbd5e1; }
+
+/* Skeleton */
+:root[data-theme="light"] .skeleton {
+  background: linear-gradient(90deg, #eef2f8 0%, #f8fafc 50%, #eef2f8 100%);
+}
+
+/* Patient detail */
+:root[data-theme="light"] .aki-high {
+  background: radial-gradient(ellipse at top right, rgba(220,38,38,0.06), transparent 60%), var(--surface);
+  border-color: rgba(220,38,38,0.20);
+}
+:root[data-theme="light"] .aki-moderate {
+  background: radial-gradient(ellipse at top right, rgba(217,119,6,0.06), transparent 60%), var(--surface);
+  border-color: rgba(217,119,6,0.20);
+}
+:root[data-theme="light"] .aki-low {
+  background: radial-gradient(ellipse at top right, rgba(22,163,74,0.05), transparent 60%), var(--surface);
+  border-color: rgba(22,163,74,0.20);
+}
+:root[data-theme="light"] .aki-score-bar { background: rgba(15,23,42,0.08); }
+:root[data-theme="light"] .aki-score-bar-tick { background: rgba(15,23,42,0.22); }
+
+/* Marker cards */
+:root[data-theme="light"] .marker-card { box-shadow: 0 1px 0 rgba(15,23,42,0.02), 0 6px 18px -12px rgba(15,23,42,0.10); }
+:root[data-theme="light"] .marker-explain { border-top: 1px dashed #e2e8f0; }
+:root[data-theme="light"] .ref-scale-track { background: rgba(15,23,42,0.06); }
+:root[data-theme="light"] .ref-scale-band { background: rgba(22,163,74,0.16); border-color: rgba(22,163,74,0.35); }
+:root[data-theme="light"] .ref-scale-marker { box-shadow: 0 0 0 4px rgba(15,23,42,0.05); }
+
+/* Charts — adjust SVG inline colors via overrides where they reference theme tokens directly. */
+:root[data-theme="light"] .chart-tooltip {
+  background: rgba(255,255,255,0.98); border: 1px solid var(--border-2);
+  box-shadow: 0 8px 24px rgba(15,23,42,0.10);
+}
+
+/* Disclaimer card */
+:root[data-theme="light"] .disclaimer-card {
+  background: rgba(217,119,6,0.06); border-color: rgba(217,119,6,0.30);
+}
+
+/* Cohort legend chip — already inline-styled, just colors */
+:root[data-theme="light"] .sidebar-user-info b { color: var(--text-1); }
+:root[data-theme="light"] .clock-num { color: var(--text-1); }
+:root[data-theme="light"] .clock-ss { color: var(--text-faint); }
+
+/* About */
+:root[data-theme="light"] .row-total { background: rgba(2,132,199,0.04); }
+
+/* Tweaks panel — host component uses its own theme; light wrapper softens it if needed */
+:root[data-theme="light"] .tweaks-panel { color-scheme: light; }

@@ -287,9 +287,10 @@ function SegSeg({ value, options, onChange }) {
   return (
     <div className="segseg">
       {options.map((o) => (
-        <button key={o.v} className={`segseg-btn ${value === o.v ? "active" : ""}`} onClick={() => onChange(o.v)}
-          style={value === o.v && o.color ? { color: o.color, borderColor: o.color } : {}}>
-          {o.color && value === o.v && <span className="segseg-dot" style={{ background: o.color }}></span>}
+        <button
+          key={o.v}
+          className={`segseg-btn ${value === o.v ? "active" : ""} ${value === o.v && o.color ? `active-${o.v}` : ""}`}
+          onClick={() => onChange(o.v)}>
           {o.label}
         </button>
       ))}

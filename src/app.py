@@ -15,6 +15,9 @@ import math
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
+
+from theme_toggle import render_theme_toggle, inject_theme_attribute, plotly_theme_layout, get_theme
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -32,83 +35,12 @@ st.set_page_config(
     page_title="Strata — Clinical Marker Intelligence",
     page_icon="⚕",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
-
-if "dark_mode" not in st.session_state:
-    st.session_state["dark_mode"] = False
-
 
 # ---------------------------------------------------------------------------
 # Custom CSS — ported from docs/design/styles.css
 # ---------------------------------------------------------------------------
-
-_DARK_VARS = """<style>
-:root {
-  --bg: #060d1b;
-  --bg-2: #0a1322;
-  --surface: #0d1626;
-  --surface-2: #111d33;
-  --surface-3: #15233b;
-  --border: #1a2e4a;
-  --border-2: #25406b;
-  --text-1: #f1f5f9;
-  --text-2: #e2e8f0;
-  --text-3: #94a3b8;
-  --text-muted: #475569;
-  --text-faint: #334155;
-  --accent-blue: #38bdf8;
-  --accent-blue-2: #3b82f6;
-  --accent-blue-deep: #1d4ed8;
-  --accent-cyan: #22d3ee;
-  --accent-info: #a78bfa;
-  --risk-high: #f87171;
-  --risk-high-2: #ef4444;
-  --risk-mod: #fbbf24;
-  --risk-mod-2: #d97706;
-  --risk-low: #4ade80;
-  --risk-low-2: #22c55e;
-  --gradient-accent: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 45%, #22d3ee 100%);
-  --radius: 14px;
-  --radius-sm: 8px;
-  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-}
-</style>"""
-
-_LIGHT_VARS = """<style>
-:root {
-  --bg: #f0f4f8;
-  --bg-2: #e8eef5;
-  --surface: #ffffff;
-  --surface-2: #f4f7fb;
-  --surface-3: #eaf0f7;
-  --border: #cdd8e8;
-  --border-2: #b0c2d8;
-  --text-1: #0f172a;
-  --text-2: #1e293b;
-  --text-3: #334155;
-  --text-muted: #64748b;
-  --text-faint: #94a3b8;
-  --accent-blue: #2563eb;
-  --accent-blue-2: #3b82f6;
-  --accent-blue-deep: #1d4ed8;
-  --accent-cyan: #0891b2;
-  --accent-info: #7c3aed;
-  --risk-high: #dc2626;
-  --risk-high-2: #ef4444;
-  --risk-mod: #d97706;
-  --risk-mod-2: #b45309;
-  --risk-low: #15803d;
-  --risk-low-2: #16a34a;
-  --gradient-accent: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 45%, #0891b2 100%);
-  --radius: 14px;
-  --radius-sm: 8px;
-  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-}
-/* override hardcoded dark bg values from CUSTOM_CSS */
-.hero-stat, .hero-watchlist { background: rgba(15,23,42,0.05) !important; }
-.mini-stat, .trend-explain  { background: rgba(15,23,42,0.05) !important; }
-</style>"""
 
 CUSTOM_CSS = """
 <style>
@@ -128,7 +60,7 @@ html, body, [class*="css"] {
 [data-testid="stMarkdownContainer"] span,
 [data-testid="stMarkdownContainer"] li { color: var(--text-1) !important; }
 p, li { color: var(--text-1); }
-section[data-testid="stSidebar"] { background-color: var(--bg-2) !important; }
+section[data-testid="stSidebar"] { background: linear-gradient(180deg, #08111f 0%, #060d1b 100%) !important; border-right: 1px solid var(--border) !important; }
 .block-container { padding-top: 1.5rem !important; }
 /* hide decorative toolbar elements and sidebar controls */
 [data-testid="stStatusWidget"]        { display: none !important; }
@@ -136,8 +68,27 @@ section[data-testid="stSidebar"] { background-color: var(--bg-2) !important; }
 [data-testid="stMainMenuButton"]      { display: none !important; }
 [data-testid="stConnectionStatus"]    { display: none !important; }
 [data-testid="stToolbarActions"]      { display: none !important; }
-[data-testid="stExpandSidebarButton"] { display: none !important; }
-[data-testid="stSidebarCollapseButton"] { display: none !important; }
+/* ── Sidebar collapse button — always visible ── */
+[data-testid="stSidebarHeader"] {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapseButton"] > button {
+  opacity: 1 !important;
+  visibility: visible !important;
+  color: var(--text-3) !important;
+}
+[data-testid="stSidebarCollapseButton"] > button svg,
+[data-testid="stSidebarCollapseButton"] > button svg path {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+[data-testid="stSidebarCollapseButton"]:hover > button,
+[data-testid="stSidebarCollapseButton"] > button:hover {
+  color: var(--text-1) !important;
+  background: var(--surface-2) !important;
+}
 
 /* ── Sidebar content ── */
 .sidebar-brand { padding: 4px 0 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
@@ -783,6 +734,135 @@ table.arch-table tbody tr.row-total { background: rgba(56,189,248,0.04); }
 .disclaimer-title { font-size: 11px; letter-spacing: 0.18em; color: var(--risk-mod); font-weight: 700; margin-bottom: 6px; text-transform: uppercase; }
 .disclaimer-text { font-size: 12.5px; color: var(--text-3); line-height: 1.55; max-width: 860px; }
 
+/* ── Sidebar overrides ── */
+section[data-testid="stSidebar"] > div:first-child { padding: 0 !important; }
+section[data-testid="stSidebar"] .block-container { padding: 18px 14px 24px !important; }
+.strata-sidebar-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 6px 18px 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.strata-sidebar-logo {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 45%, #22d3ee 100%);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(56,189,248,0.25);
+  flex-shrink: 0;
+}
+.strata-sidebar-logo-inner {
+  width: 14px; height: 14px; border-radius: 4px;
+  background: #060d1b;
+}
+.strata-sidebar-wordmark {
+  font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-1); line-height: 1;
+}
+.strata-sidebar-wordmark .accent { background: linear-gradient(90deg,#3b82f6,#22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.strata-sidebar-tagline { font-size: 9.5px; letter-spacing: 0.16em; color: var(--text-3); text-transform: uppercase; margin-top: 3px; }
+.strata-section-label {
+  font-size: 9.5px; letter-spacing: 0.20em; color: var(--text-muted);
+  text-transform: uppercase; font-weight: 600;
+  padding: 14px 8px 6px 8px;
+}
+.strata-cohort-row {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12.5px; color: var(--text-3); padding: 4px 8px;
+}
+.strata-cohort-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.strata-cohort-count { margin-left: auto; font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text-2); }
+.strata-sidebar-foot { padding-top: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.strata-demo-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: 10px;
+  background: rgba(56,189,248,0.05); border: 1px solid rgba(56,189,248,0.2);
+  font-size: 11px; color: var(--accent-blue); letter-spacing: 0.06em; font-weight: 600;
+}
+.strata-demo-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent-blue);
+  box-shadow: 0 0 8px var(--accent-blue);
+  animation: s-pulse 1.6s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.strata-safety-line {
+  font-size: 10px; color: var(--text-muted); letter-spacing: 0.06em; padding: 0 2px; line-height: 1.5;
+}
+
+/* ── Sidebar nav buttons (dark mode defaults) ── */
+section[data-testid="stSidebar"] [data-testid^="nav_"] .stButton > button {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
+  color: #6b82a8 !important;
+  font-size: 13px !important; font-weight: 500 !important;
+  padding: 8px 14px !important;
+  text-align: left !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  transition: background 0.13s ease, color 0.13s ease, border-color 0.13s ease !important;
+  box-shadow: none !important;
+}
+section[data-testid="stSidebar"] [data-testid^="nav_"] .stButton > button:hover {
+  color: #a8bdd6 !important;
+  background: rgba(56,189,248,0.05) !important;
+  border-color: rgba(56,189,248,0.08) !important;
+}
+section[data-testid="stSidebar"] [data-testid^="nav_"][data-testid$="_active"] .stButton > button {
+  background: linear-gradient(90deg, rgba(34,211,238,0.13), rgba(56,189,248,0.05)) !important;
+  border-color: rgba(34,211,238,0.28) !important;
+  color: #f0f8ff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 0 18px rgba(34,211,238,0.09) !important;
+}
+section[data-testid="stSidebar"] [data-testid^="nav_"] .stButton {
+  margin-bottom: 3px !important;
+}
+section[data-testid="stSidebar"] [data-testid^="nav_"] .stButton > button:focus:not(:active) {
+  box-shadow: none !important;
+  border-color: rgba(34,211,238,0.20) !important;
+}
+
+/* ── Sidebar user block ── */
+.sidebar-user-block {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  background: rgba(56,189,248,0.04); border: 1px solid var(--border);
+  margin-top: 4px;
+}
+.sidebar-user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #1d4ed8 0%, #22d3ee 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.sidebar-user-name { font-size: 12.5px; font-weight: 600; color: var(--text-2); line-height: 1.2; }
+.sidebar-user-role { font-size: 10px; color: var(--text-muted); letter-spacing: 0.04em; margin-top: 1px; }
+
+/* ── Entry animations ── */
+@keyframes s-fadein {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes s-slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-card         { animation: s-slide-up 0.50s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .kpi-grid          { animation: s-fadein   0.45s ease 0.05s both; }
+  .filter-card       { animation: s-fadein   0.40s ease 0.10s both; }
+  .table-card        { animation: s-fadein   0.40s ease 0.15s both; }
+  .about-hero        { animation: s-slide-up 0.50s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .disclaimer-card   { animation: s-fadein   0.40s ease 0.20s both; }
+  .marker-card       { animation: s-fadein   0.35s ease both; }
+  .patient-summary-card { animation: s-slide-up 0.45s ease both; }
+  .aki-risk-card     { animation: s-slide-up 0.45s ease 0.06s both; }
+}
+
+/* ── Filter panel header ── */
+.filter-panel-header { margin-bottom: 14px; }
+.filter-panel-title  { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 3px; }
+.filter-panel-sub    { font-size: 11.5px; color: var(--text-3); line-height: 1.4; }
+
 /* ── Theme toggle — fixed floating pill, always visible ── */
 @keyframes toggle-pulse {
   0%   { box-shadow: 0 4px 20px rgba(0,0,0,0.30), 0 0 0 0   rgba(139,92,246,0.60), 0 0 10px 2px rgba(139,92,246,0.28); }
@@ -836,9 +916,11 @@ div[data-testid="stToggle"] label p {
 </style>
 """
 
-_theme_css = _DARK_VARS if st.session_state.get("dark_mode", False) else _LIGHT_VARS
-st.markdown(_theme_css, unsafe_allow_html=True)
+_THEME_CSS_PATH = _ROOT / "docs" / "design" / "lightmode-specs" / "theme.css"
+st.markdown(f"<style>{_THEME_CSS_PATH.read_text()}</style>", unsafe_allow_html=True)
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+# Inject light-mode overrides last so they win the cascade without !important.
+inject_theme_attribute()
 
 
 # ---------------------------------------------------------------------------
@@ -1021,9 +1103,11 @@ def hero_html(patients: pd.DataFrame) -> str:
         f'<div>'
         f'<div class="hero-eyebrow">Clinical Marker Intelligence · AKI Early-Warning Module</div>'
         f'<div class="hero-wordmark">Str<span class="hero-accent">a</span>ta</div>'
+        f'<div style="font-size:13px;font-weight:600;color:var(--text-2);margin:-4px 0 8px 0;letter-spacing:0.01em;">'
+        f'Clinical Marker Intelligence + AKI Early-Warning'
+        f'</div>'
         f'<div class="hero-tagline">'
-        f'A clinical signal intelligence layer. Surfaces meaningful patterns across labs, vitals, '
-        f'and diagnosis context from structured EHR data.'
+        f'Surface abnormal labs, vital trends, and kidney deterioration signals from structured EHR data.'
         f'</div>'
         f'<div class="hero-stats">'
         f'<div class="hero-stat">'
@@ -1046,13 +1130,160 @@ def hero_html(patients: pd.DataFrame) -> str:
         f'</div>'
         # right
         f'<div class="hero-right">'
-        f'<div class="demo-mode-pill"><span class="demo-dot"></span>Demo Mode · Not Diagnostic</div>'
+        f'<div class="demo-mode-pill"><span class="demo-dot"></span>Demo Mode</div>'
         f'{watchlist_html}'
-        f'<div class="hero-disclaimer-inline">For clinical review only<br>Not a diagnostic device</div>'
+        f'<div class="hero-disclaimer-inline">Not diagnostic · For clinical review only</div>'
         f'</div>'
         f'</div>'
         f'</div>'
     )
+
+
+def render_hero_component(patients: pd.DataFrame) -> None:
+    """Render hero card via iframe so the JS live clock updates every second.
+
+    Uses hardcoded colors matched to the active theme since the iframe cannot
+    read parent-page CSS variables.
+    """
+    theme = get_theme()
+    is_dark = theme == "dark"
+
+    total_n  = len(patients)
+    high_n   = int((patients["aki_risk_tier"] == "High").sum())
+    mod_n    = int((patients["aki_risk_tier"] == "Moderate").sum())
+    avg_abn  = patients["abnormal_marker_count"].mean()
+    high_pct = round(high_n / total_n * 100) if total_n else 0
+    mod_pct  = round(mod_n  / total_n * 100) if total_n else 0
+
+    top_risk = (
+        patients[patients["aki_risk_tier"] == "High"]
+        .sort_values("aki_risk_score", ascending=False)
+        .head(8)
+    )
+    ticker_items = "".join(
+        f'<span class="t-item">'
+        f'<span class="t-sep">▸</span>'
+        f'<span class="t-id">#{int(r.hadm_id)}</span>'
+        f'<span class="t-score"> {int(r.aki_risk_score)}</span>'
+        f'<span class="t-con"> {_html.escape(str(r.get("top_concern", ""))[:42])}</span>'
+        f'</span>'
+        for _, r in top_risk.iterrows()
+    )
+    ticker_doubled = (ticker_items * 2) if ticker_items else ""
+
+    if is_dark:
+        body_bg   = "#060d1b"
+        card_bg   = "radial-gradient(ellipse at top right, rgba(29,78,216,0.10), transparent 60%), #0d1626"
+        card_bdr  = "#1a2e4a"
+        text1     = "#f1f5f9"
+        text2     = "#e2e8f0"
+        text3     = "#94a3b8"
+        muted     = "#475569"
+        surface   = "rgba(13,22,38,0.55)"
+        surf_bdr  = "#1a2e4a"
+        acc_blue  = "#38bdf8"
+        risk_high = "#f87171"
+        risk_mod  = "#fbbf24"
+        acc_info  = "#a78bfa"
+        tkr_bg    = "rgba(6,13,27,0.50)"
+    else:
+        body_bg   = "#f4f6fb"
+        card_bg   = "radial-gradient(900px 400px at 100% -20%, rgba(2,132,199,0.10), transparent 60%), #ffffff"
+        card_bdr  = "#e2e8f0"
+        text1     = "#0b1220"
+        text2     = "#1e293b"
+        text3     = "#475569"
+        muted     = "#64748b"
+        surface   = "#f5f7fb"
+        surf_bdr  = "#e2e8f0"
+        acc_blue  = "#0284c7"
+        risk_high = "#dc2626"
+        risk_mod  = "#d97706"
+        acc_info  = "#7c3aed"
+        tkr_bg    = "rgba(238,242,248,0.80)"
+
+    grad = "linear-gradient(90deg,#1d4ed8 0%,#3b82f6 45%,#22d3ee 100%)"
+
+    ticker_section = ""
+    if ticker_doubled:
+        ticker_section = f"""
+  <div class="tkr-wrap">
+    <div class="tkr-lbl"><span class="live-dot"></span>LIVE · WATCHLIST · HIGH RISK</div>
+    <div class="tkr-track"><div class="tkr-inner">{ticker_doubled}</div></div>
+  </div>"""
+
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{{margin:0;padding:0;box-sizing:border-box;}}
+html,body{{height:100%;background:{body_bg};font-family:'Inter',-apple-system,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;}}
+.hero{{background:{card_bg};border:1px solid {card_bdr};border-radius:14px;overflow:hidden;}}
+.top-bar{{height:3px;background:{grad};}}
+.grid{{display:grid;grid-template-columns:1.4fr 1fr;gap:28px;padding:22px 28px 18px;align-items:start;}}
+.eyebrow{{font-size:10px;letter-spacing:.22em;color:{acc_blue};font-weight:600;text-transform:uppercase;margin-bottom:10px;}}
+.wm{{font-size:50px;font-weight:800;letter-spacing:-.045em;line-height:.93;margin:0 0 8px;color:{text1};}}
+.wm .ac{{background:{grad};-webkit-background-clip:text;background-clip:text;color:transparent;}}
+.sub{{font-size:12.5px;font-weight:600;color:{text2};margin:0 0 6px;letter-spacing:.01em;}}
+.tgl{{font-size:12.5px;line-height:1.5;color:{text3};max-width:440px;margin-bottom:16px;}}
+.stats{{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}}
+.stat{{background:{surface};border:1px solid {surf_bdr};border-radius:10px;padding:10px 12px;}}
+.sv{{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1;margin-bottom:5px;font-variant-numeric:tabular-nums;}}
+.sl{{font-size:9px;letter-spacing:.16em;color:{text3};text-transform:uppercase;font-weight:600;}}
+.rgt{{display:flex;flex-direction:column;gap:12px;}}
+.pill{{display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border-radius:999px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.30);font-size:11px;letter-spacing:.16em;color:{acc_blue};font-weight:600;text-transform:uppercase;width:fit-content;}}
+.pdot{{width:7px;height:7px;border-radius:50%;background:{acc_blue};box-shadow:0 0 10px {acc_blue};flex-shrink:0;animation:pulse 1.6s ease-in-out infinite;}}
+@keyframes pulse{{0%,100%{{opacity:.55;transform:scale(.9);}}50%{{opacity:1;transform:scale(1.15);}}}}
+.ck-box{{background:{surface};border:1px solid {surf_bdr};border-radius:10px;padding:12px 16px;}}
+.ck-lbl{{font-size:9px;letter-spacing:.20em;color:{muted};text-transform:uppercase;font-weight:600;margin-bottom:6px;}}
+.ck-time{{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1;color:{text2};font-variant-numeric:tabular-nums;}}
+.disc{{font-size:10.5px;color:{muted};line-height:1.5;}}
+.tkr-wrap{{border-top:1px solid {surf_bdr};background:{tkr_bg};padding:8px 0 10px;}}
+.tkr-lbl{{font-size:9px;letter-spacing:.20em;color:{muted};text-transform:uppercase;font-weight:600;padding:0 16px 6px;display:flex;align-items:center;gap:6px;}}
+.live-dot{{width:5px;height:5px;border-radius:50%;background:{risk_high};box-shadow:0 0 6px {risk_high};flex-shrink:0;animation:pulse 1.6s ease-in-out infinite;}}
+.tkr-track{{overflow:hidden;mask-image:linear-gradient(90deg,transparent,black 4%,black 96%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,black 4%,black 96%,transparent);}}
+.tkr-inner{{display:flex;gap:0;animation:scroll 38s linear infinite;white-space:nowrap;}}
+@keyframes scroll{{from{{transform:translateX(0);}}to{{transform:translateX(-50%);}}}}
+.t-item{{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:0 18px 0 0;}}
+.t-sep{{color:{muted};font-size:9px;}}
+.t-id{{color:{text3};font-family:'JetBrains Mono',monospace;font-size:10.5px;}}
+.t-score{{font-family:'JetBrains Mono',monospace;font-weight:700;color:{risk_high};font-size:11px;}}
+.t-con{{color:{text3};font-size:10.5px;}}
+</style></head>
+<body>
+<div class="hero">
+  <div class="top-bar"></div>
+  <div class="grid">
+    <div>
+      <div class="eyebrow">Clinical Marker Intelligence · AKI Early-Warning Module</div>
+      <div class="wm">Str<span class="ac">a</span>ta</div>
+      <div class="sub">Clinical Marker Intelligence + AKI Early-Warning</div>
+      <div class="tgl">Surface abnormal labs, vital trends, and kidney deterioration signals from structured EHR data.</div>
+      <div class="stats">
+        <div class="stat"><div class="sv" style="color:{text2};">{total_n}</div><div class="sl">Admissions</div></div>
+        <div class="stat"><div class="sv" style="color:{risk_high};">{high_n}</div><div class="sl">High Risk · {high_pct}%</div></div>
+        <div class="stat"><div class="sv" style="color:{risk_mod};">{mod_n}</div><div class="sl">Moderate · {mod_pct}%</div></div>
+        <div class="stat"><div class="sv" style="color:{acc_info};">{avg_abn:.1f}</div><div class="sl">Avg Abnormal</div></div>
+      </div>
+    </div>
+    <div class="rgt">
+      <div class="pill"><span class="pdot"></span>Demo Mode</div>
+      <div class="ck-box">
+        <div class="ck-lbl">SESSION · LOCAL TIME</div>
+        <div class="ck-time" id="ck">--:--:--</div>
+      </div>
+      <div class="disc">Not diagnostic · For clinical review only</div>
+    </div>
+  </div>
+  {ticker_section}
+</div>
+<script>
+function tick(){{var n=new Date(),el=document.getElementById('ck');if(el)el.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');}}
+tick();setInterval(tick,1000);
+</script>
+</body></html>"""
+
+    components.html(html, height=360, scrolling=False)
 
 
 def build_patient_table_html(df: pd.DataFrame) -> str:
@@ -1242,32 +1473,78 @@ def aki_card_html(row: pd.Series) -> str:
     )
 
 
-def make_trend_chart(ts_df: pd.DataFrame, marker_key: str, marker_name: str, unit: str) -> go.Figure | None:
-    """Dark-themed Plotly area chart for a single marker's time series."""
+def make_trend_chart(
+    ts_df: pd.DataFrame,
+    marker_key: str,
+    marker_name: str,
+    unit: str,
+    accent: str = "#38bdf8",
+) -> go.Figure | None:
+    """Dark-themed Plotly area chart matching the design's visual language."""
     df = ts_df[ts_df["marker_key"] == marker_key].sort_values("charttime")
     if df.empty:
         return None
+
+    tl = plotly_theme_layout()
+    is_dark = get_theme() == "dark"
+    grid_color  = tl["yaxis"]["gridcolor"]
+    line_color  = tl["xaxis"]["linecolor"]
+    tick_color  = "#475569" if is_dark else "#64748b"
+    hover_bg    = "#0d1626" if is_dark else "rgba(255,255,255,0.98)"
+    hover_border= "#25406b" if is_dark else "#e2e8f0"
+    hover_font  = "#e2e8f0" if is_dark else "#1e293b"
+    dot_border  = "#060d1b" if is_dark else "#ffffff"
+
+    fill_rgba = accent.replace("#", "")
+    r = int(fill_rgba[0:2], 16) if len(fill_rgba) == 6 else 56
+    g = int(fill_rgba[2:4], 16) if len(fill_rgba) == 6 else 189
+    b = int(fill_rgba[4:6], 16) if len(fill_rgba) == 6 else 248
+
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=df["charttime"],
-        y=df["value"],
+        x=df["charttime"], y=df["value"],
         mode="lines+markers",
-        line=dict(color="#38bdf8", width=2),
-        marker=dict(size=5, color="#38bdf8", line=dict(color="#060d1b", width=1.5)),
+        line=dict(color=accent, width=2, shape="linear"),
+        marker=dict(size=5, color=accent, line=dict(color=dot_border, width=1.5)),
         fill="tozeroy",
-        fillcolor="rgba(56,189,248,0.06)",
-        hovertemplate=f"%{{x|%b %d, %H:%M}}<br><b>%{{y:.1f}} {unit}</b><extra></extra>",
+        fillcolor=f"rgba({r},{g},{b},0.07)",
+        hovertemplate=f"%{{x|%b %d %H:%M}}<br><b>%{{y:.2f}} {unit}</b><extra></extra>",
+        name=marker_name,
     ))
     fig.update_layout(
-        title=dict(text=f"<b>{marker_name}</b>", font=dict(size=13, color="#94a3b8", family="Inter"), x=0, pad=dict(b=4)),
-        margin=dict(l=0, r=0, t=38, b=0),
-        height=230,
+        template=tl["template"],
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        xaxis=dict(showgrid=False, zeroline=False, tickfont=dict(size=10, color="#475569", family="Inter"), tickformat="%b %d"),
-        yaxis=dict(gridcolor="#1a2e4a", gridwidth=1, zeroline=False, tickfont=dict(size=10, color="#475569", family="Inter"), title=dict(text=unit, font=dict(size=10, color="#475569"))),
+        font_color=tl["font_color"],
+        font_family="Inter, sans-serif",
+        title=dict(
+            text=f"<span style='font-size:12px;color:{tick_color};font-family:Inter,sans-serif;font-weight:600'>{marker_name}</span>",
+            x=0, pad=dict(b=6),
+        ),
+        margin=dict(l=8, r=8, t=36, b=8),
+        height=220,
+        xaxis=dict(
+            showgrid=False, zeroline=False,
+            tickfont=dict(size=9, color=tick_color, family="JetBrains Mono, monospace"),
+            tickformat="%b %d",
+            tickcolor=line_color,
+            linecolor=line_color,
+        ),
+        yaxis=dict(
+            gridcolor=grid_color, gridwidth=1,
+            zeroline=False,
+            tickfont=dict(size=9, color=tick_color, family="JetBrains Mono, monospace"),
+            title=dict(text=unit, font=dict(size=9, color=tick_color), standoff=4),
+            tickcolor=line_color,
+            linecolor=line_color,
+        ),
         hovermode="x unified",
-        hoverlabel=dict(bgcolor="#0d1626", bordercolor="#1a2e4a", font=dict(color="#e2e8f0", size=12, family="Inter")),
+        hoverlabel=dict(
+            bgcolor=hover_bg,
+            bordercolor=hover_border,
+            font=dict(color=hover_font, size=12, family="Inter, sans-serif"),
+        ),
+        showlegend=False,
     )
     return fig
 
@@ -1288,7 +1565,7 @@ def section_label(text: str, meta: str = "") -> None:
 # ---------------------------------------------------------------------------
 
 def render_overview(patients: pd.DataFrame) -> None:
-    st.markdown(hero_html(patients), unsafe_allow_html=True)
+    render_hero_component(patients)
 
     total_n = len(patients)
     high_n  = int((patients["aki_risk_tier"] == "High").sum())
@@ -1314,7 +1591,14 @@ def render_overview(patients: pd.DataFrame) -> None:
 
     # ── Filters
     section_label("Triage Filters")
-    st.markdown('<div class="filter-card">', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="filter-card">'
+        '<div class="filter-panel-header">'
+        '<div class="filter-panel-title">Triage Filters</div>'
+        '<div class="filter-panel-sub">Narrow admissions by risk tier, ICU status, or admission type.</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
     fc1, fc2, fc3, fc4 = st.columns([2, 1.4, 1.4, 1.8])
     with fc1:
         search = st.text_input("Search", placeholder="Subject or admission ID…", key="ov_search", label_visibility="collapsed")
@@ -1498,10 +1782,13 @@ def render_patient_detail(
                         mk_ts   = pt_ts[pt_ts["marker_key"] == mk]
                         mk_name = key_to_name.get(mk, mk)
                         mk_unit = mk_ts["unit"].iloc[0] if not mk_ts.empty else ""
-                        fig     = make_trend_chart(pt_ts, mk, mk_name, mk_unit)
+                        mk_summary = pt_mkrs[pt_mkrs["marker_key"] == mk]
+                        _mk_status = mk_summary.iloc[0].get("status", "Normal") if not mk_summary.empty else "Normal"
+                        _is_dark = get_theme() == "dark"
+                        _mk_accent = ("#f87171" if _is_dark else "#dc2626") if _mk_status == "High" else ("#60a5fa" if _is_dark else "#2563eb") if _mk_status == "Low" else ("#38bdf8" if _is_dark else "#0284c7")
+                        fig     = make_trend_chart(pt_ts, mk, mk_name, mk_unit, accent=_mk_accent)
                         if fig:
                             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
-                            mk_summary = pt_mkrs[pt_mkrs["marker_key"] == mk]
                             if not mk_summary.empty:
                                 exp    = str(mk_summary.iloc[0].get("explanation", ""))
                                 status = mk_summary.iloc[0].get("status", "Normal")
@@ -1644,7 +1931,11 @@ def render_marker_explorer(
         mk_ts   = pt_ts[pt_ts["marker_key"] == sel_mk]
         mk_name = key_to_name.get(sel_mk, sel_mk)
         mk_unit = mk_ts["unit"].iloc[0] if not mk_ts.empty else ""
-        fig     = make_trend_chart(pt_ts, sel_mk, mk_name, mk_unit)
+        _sel_row = pt_mkrs[pt_mkrs["marker_key"] == sel_mk]
+        _sel_status = _sel_row.iloc[0].get("status", "Normal") if not _sel_row.empty else "Normal"
+        _is_dark = get_theme() == "dark"
+        _sel_accent = ("#f87171" if _is_dark else "#dc2626") if _sel_status == "High" else ("#60a5fa" if _is_dark else "#2563eb") if _sel_status == "Low" else ("#38bdf8" if _is_dark else "#0284c7")
+        fig     = make_trend_chart(pt_ts, sel_mk, mk_name, mk_unit, accent=_sel_accent)
         if fig:
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
         mk_row = pt_mkrs[pt_mkrs["marker_key"] == sel_mk]
@@ -1791,34 +2082,262 @@ def render_about(patients: pd.DataFrame) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Sidebar
+# ---------------------------------------------------------------------------
+
+_NAV_PAGES: list[str] = ["Overview", "Patient Detail", "Marker Explorer", "About"]
+
+# Lucide-style SVG icons (stroke-based, inherits currentColor)
+_ICON_GRID = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"'
+    ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+    ' stroke-linejoin="round">'
+    '<rect x="3" y="3" width="7" height="7" rx="1"/>'
+    '<rect x="14" y="3" width="7" height="7" rx="1"/>'
+    '<rect x="14" y="14" width="7" height="7" rx="1"/>'
+    '<rect x="3" y="14" width="7" height="7" rx="1"/>'
+    '</svg>'
+)
+_ICON_USER = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"'
+    ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+    ' stroke-linejoin="round">'
+    '<circle cx="12" cy="7" r="4"/>'
+    '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>'
+    '</svg>'
+)
+_ICON_TREND = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"'
+    ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+    ' stroke-linejoin="round">'
+    '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>'
+    '<polyline points="16 7 22 7 22 13"/>'
+    '</svg>'
+)
+_ICON_INFO = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"'
+    ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+    ' stroke-linejoin="round">'
+    '<circle cx="12" cy="12" r="10"/>'
+    '<path d="M12 16v-4"/><path d="M12 8h.01"/>'
+    '</svg>'
+)
+_NAV_DEFS: list[tuple[str, str]] = [
+    ("Overview",        _ICON_GRID),
+    ("Patient Detail",  _ICON_USER),
+    ("Marker Explorer", _ICON_TREND),
+    ("About",           _ICON_INFO),
+]
+
+_NAV_ICONS: dict[str, str] = {
+    "Overview":        ":material/grid_view:",
+    "Patient Detail":  ":material/person:",
+    "Marker Explorer": ":material/trending_up:",
+    "About":           ":material/info:",
+}
+
+
+def _build_sidebar_nav_html(current_page: str, total_n: int) -> str:
+    """Return a self-contained HTML string for the custom sidebar nav."""
+    items: list[str] = []
+    for i, (label, icon) in enumerate(_NAV_DEFS):
+        active_cls = " active" if label == current_page else ""
+        badge = (
+            f'<span class="nav-badge">{total_n}</span>'
+            if label == "Overview" else ""
+        )
+        items.append(
+            f'<div class="nav-item{active_cls}" onclick="selectNav({i})">'
+            f'<span class="nav-icon">{icon}</span>'
+            f'<span class="nav-label">{label}</span>'
+            f'{badge}'
+            f'</div>'
+        )
+    items_html = "\n".join(items)
+
+    # JS: uses React's native setter so Streamlit picks up the change
+    js = """
+function selectNav(idx) {
+  try {
+    var sidebar = window.parent.document.querySelector('[data-testid="stSidebar"]');
+    var radioGroup = sidebar ? sidebar.querySelector('[data-testid="stRadio"]') : null;
+    var radios = radioGroup ? radioGroup.querySelectorAll('input[type="radio"]') : [];
+    var input = radios[idx];
+    if (!input) return;
+    var setter = Object.getOwnPropertyDescriptor(
+      window.parent.HTMLInputElement.prototype, 'checked'
+    ).set;
+    setter.call(input, true);
+    input.dispatchEvent(new Event('change', {bubbles: true}));
+  } catch(e) { console.warn('nav click error', e); }
+}
+"""
+
+    css = """
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: transparent !important; overflow: hidden; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       -webkit-font-smoothing: antialiased; }
+
+.nav-wrapper { display: flex; flex-direction: column; gap: 3px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  color: #6b82a8;
+  font-size: 13px; font-weight: 500; letter-spacing: 0.01em;
+  transition: background 0.13s ease, color 0.13s ease, border-color 0.13s ease;
+  user-select: none;
+}
+.nav-item:hover {
+  color: #a8bdd6;
+  background: rgba(56,189,248,0.05);
+}
+.nav-item.active {
+  background: linear-gradient(90deg, rgba(34,211,238,0.13), rgba(56,189,248,0.05));
+  border-color: rgba(34,211,238,0.28);
+  color: #f0f8ff;
+  font-weight: 600;
+  box-shadow: 0 0 18px rgba(34,211,238,0.09);
+}
+
+.nav-icon {
+  display: flex; align-items: center; flex-shrink: 0;
+  color: #6b82a8;
+  transition: color 0.13s ease;
+}
+.nav-item.active .nav-icon { color: #22d3ee; }
+.nav-item:hover .nav-icon  { color: #a8bdd6; }
+
+.nav-label { flex: 1; white-space: nowrap; }
+
+.nav-badge {
+  font-family: 'JetBrains Mono', 'Fira Mono', monospace;
+  font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums;
+  color: rgba(34,211,238,0.80);
+  background: rgba(34,211,238,0.08);
+  border: 1px solid rgba(34,211,238,0.22);
+  padding: 1px 7px; border-radius: 999px;
+  margin-left: auto;
+}
+"""
+
+    return (
+        "<!DOCTYPE html><html><head>"
+        f"<style>{css}</style>"
+        "</head><body>"
+        f'<div class="nav-wrapper">{items_html}</div>'
+        f"<script>{js}</script>"
+        "</body></html>"
+    )
+
+
+def render_sidebar(patients: pd.DataFrame) -> None:
+    """Sidebar with brand, vertical nav, cohort summary, demo badge, and user block."""
+    total_n = len(patients)
+    high_n  = int((patients["aki_risk_tier"] == "High").sum())
+    mod_n   = int((patients["aki_risk_tier"] == "Moderate").sum())
+    low_n   = int((patients["aki_risk_tier"] == "Low").sum())
+
+    with st.sidebar:
+        # Theme toggle is position:fixed — DOM order doesn't matter.
+        render_theme_toggle()
+
+        # ── Brand
+        st.markdown(
+            '<div class="strata-sidebar-brand">'
+            '<div class="strata-sidebar-logo"><div class="strata-sidebar-logo-inner"></div></div>'
+            '<div>'
+            '<div class="strata-sidebar-wordmark">Str<span class="accent">a</span>ta</div>'
+            '<div class="strata-sidebar-tagline">Clinical Signal Layer</div>'
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+        # ── Workspace nav
+        st.markdown('<div class="strata-section-label">Workspace</div>', unsafe_allow_html=True)
+        current_page = st.session_state.get("active_page", "Overview")
+        for label in _NAV_PAGES:
+            safe = label.replace(" ", "_")
+            suffix = "active" if label == current_page else "inactive"
+            with st.container(key=f"nav_{safe}_{suffix}"):
+                if st.button(
+                    label,
+                    key=f"nav_btn_{safe}",
+                    icon=_NAV_ICONS.get(label, ""),
+                    use_container_width=True,
+                ):
+                    st.session_state.active_page = label
+                    st.rerun()
+
+        # ── Cohort summary
+        st.markdown(
+            '<div class="strata-section-label" style="margin-top:8px;">Cohort</div>'
+            f'<div class="strata-cohort-row">'
+            f'<span class="strata-cohort-dot" style="background:#f87171;"></span>'
+            f'<span>High</span><span class="strata-cohort-count">{high_n}</span>'
+            f'</div>'
+            f'<div class="strata-cohort-row">'
+            f'<span class="strata-cohort-dot" style="background:#fbbf24;"></span>'
+            f'<span>Moderate</span><span class="strata-cohort-count">{mod_n}</span>'
+            f'</div>'
+            f'<div class="strata-cohort-row">'
+            f'<span class="strata-cohort-dot" style="background:#4ade80;"></span>'
+            f'<span>Low</span><span class="strata-cohort-count">{low_n}</span>'
+            f'</div>'
+            f'<div class="strata-cohort-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">'
+            f'<span style="color:var(--text-muted);font-size:11px;">Total</span>'
+            f'<span class="strata-cohort-count">{total_n}</span>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+        # ── Footer: demo badge + reviewer block
+        st.markdown(
+            '<div class="strata-sidebar-foot">'
+            '<div class="strata-demo-pill">'
+            '<span class="strata-demo-dot"></span><span>DEMO MODE</span>'
+            '</div>'
+            '<div class="strata-safety-line">'
+            'Not diagnostic · For clinical review only.<br>MIMIC-IV Clinical Demo v2.2'
+            '</div>'
+            '<div class="sidebar-user-block">'
+            '<div class="sidebar-user-avatar">CL</div>'
+            '<div>'
+            '<div class="sidebar-user-name">Clinical Lead</div>'
+            '<div class="sidebar-user-role">Reviewer · Demo Access</div>'
+            '</div>'
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    if "active_page" not in st.session_state:
+        st.session_state.active_page = "Overview"
+
     with st.spinner("Loading Strata data…"):
         patients, markers, ts, aki = load_data()
 
-    # Fixed floating pill — position:fixed via CSS, column is just a render anchor
-    _mode_label = "☀  Light mode" if st.session_state.get("dark_mode", False) else "🌙  Dark mode"
-    st.toggle(_mode_label, key="dark_mode")
+    render_sidebar(patients)
 
-    tab_overview, tab_detail, tab_explorer, tab_about = st.tabs([
-        "Overview",
-        "Patient Detail",
-        "Marker Explorer",
-        "About / Disclaimer",
-    ])
-
-    with tab_overview:
+    page = st.session_state.get("active_page", "Overview")
+    if page == "Overview":
         render_overview(patients)
-
-    with tab_detail:
+    elif page == "Patient Detail":
         render_patient_detail(patients, markers, ts, aki)
-
-    with tab_explorer:
+    elif page == "Marker Explorer":
         render_marker_explorer(patients, markers, ts)
-
-    with tab_about:
+    else:
         render_about(patients)
 
 
