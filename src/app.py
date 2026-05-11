@@ -18,6 +18,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from theme_toggle import render_theme_toggle, inject_theme_attribute, plotly_theme_layout, get_theme
+from patient_names import add_display_names
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -929,11 +930,12 @@ inject_theme_attribute()
 
 @st.cache_data(show_spinner=False)
 def load_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Load all four pipeline output files."""
+    """Load all four pipeline output files and attach synthetic display names."""
     patients = pd.read_csv(_OUTPUTS / "dashboard_patients.csv")
     markers  = pd.read_csv(_OUTPUTS / "patient_marker_summary.csv")
     ts       = pd.read_csv(_OUTPUTS / "patient_timeseries.csv", parse_dates=["charttime"])
     aki      = pd.read_csv(_OUTPUTS / "aki_risk_scores.csv")
+    add_display_names(patients)
     return patients, markers, ts, aki
 
 
@@ -1080,7 +1082,7 @@ def hero_html(patients: pd.DataFrame) -> str:
 
     ticker_items = "".join(
         f'<div class="ticker-item">'
-        f'<span class="ticker-id">#{int(r.hadm_id)}</span>'
+        f'<span class="ticker-id">{_html.escape(str(r.get("display_name", f"#{int(r.hadm_id)}")))}</span>'
         f'<span class="ticker-score">{int(r.aki_risk_score)}</span>'
         f'<span class="ticker-concern">{_html.escape(str(r.get("top_concern", ""))[:40])}</span>'
         f'</div>'
@@ -1163,7 +1165,7 @@ def render_hero_component(patients: pd.DataFrame) -> None:
     ticker_items = "".join(
         f'<span class="t-item">'
         f'<span class="t-sep">▸</span>'
-        f'<span class="t-id">#{int(r.hadm_id)}</span>'
+        f'<span class="t-id">{_html.escape(str(r.get("display_name", f"#{int(r.hadm_id)}")))}</span>'
         f'<span class="t-score"> {int(r.aki_risk_score)}</span>'
         f'<span class="t-con"> {_html.escape(str(r.get("top_concern", ""))[:42])}</span>'
         f'</span>'
@@ -1300,11 +1302,12 @@ def build_patient_table_html(df: pd.DataFrame) -> str:
         concern_raw   = str(r.get("top_concern", ""))
         concern_short = _html.escape(concern_raw[:60] + ("…" if len(concern_raw) > 60 else ""))
         concern_title = _html.escape(concern_raw)
+        display_name = str(r.get("display_name", f"Subject {int(r['subject_id'])}"))
         rows.append(
             f'<tr class="row-{css}">'
             f'<td class="td-rail"><span class="row-rail rail-{css}"></span></td>'
-            f'<td class="td-mono">{_html.escape(str(int(r["subject_id"])))}</td>'
-            f'<td class="td-mono">{_html.escape(str(int(r["hadm_id"])))}</td>'
+            f'<td class="cell-strong">{_html.escape(display_name)}</td>'
+            f'<td class="td-mono td-muted" style="font-size:0.78rem;">{_html.escape(str(int(r["hadm_id"])))}</td>'
             f'<td>{_html.escape(str(r.get("anchor_age", "—")))}</td>'
             f'<td>{sex}</td>'
             f'<td>{icu_tag}</td>'
@@ -1336,7 +1339,7 @@ def build_patient_table_html(df: pd.DataFrame) -> str:
         '<table class="patient-table">'
         '<thead><tr>'
         '<th class="th-rail"></th>'
-        '<th>Subject</th><th>Admission</th><th>Age</th><th>Sex</th>'
+        '<th>Patient</th><th>Adm #</th><th>Age</th><th>Sex</th>'
         '<th>ICU</th><th>AKI Risk Score</th><th>Tier</th>'
         '<th>Abnormal</th><th>Top Concern</th>'
         '</tr></thead>'
@@ -1396,17 +1399,18 @@ def marker_card_html(
 
 
 def patient_summary_html(row: pd.Series) -> str:
-    sex_label = "Male" if row.get("gender", "M") == "M" else "Female"
-    icu_tag   = '<span class="info-tag">ICU Admission</span>' if row.get("has_icu_stay", False) else ""
-    los       = row.get("length_of_stay_days", 0)
-    los_str   = f"{los:.1f} days" if pd.notna(los) else "—"
-    abn  = int(row.get("abnormal_marker_count", 0))
-    hi   = int(row.get("high_marker_count", 0))
-    lo   = int(row.get("low_marker_count", 0))
+    sex_label    = "Male" if row.get("gender", "M") == "M" else "Female"
+    icu_tag      = '<span class="info-tag">ICU Admission</span>' if row.get("has_icu_stay", False) else ""
+    los          = row.get("length_of_stay_days", 0)
+    los_str      = f"{los:.1f} days" if pd.notna(los) else "—"
+    abn          = int(row.get("abnormal_marker_count", 0))
+    hi           = int(row.get("high_marker_count", 0))
+    lo           = int(row.get("low_marker_count", 0))
+    display_name = str(row.get("display_name", f"Subject {int(row['subject_id'])}"))
     return (
         f'<div class="patient-summary-card">'
-        f'<div class="patient-eyebrow">Admission {int(row["hadm_id"])}</div>'
-        f'<div class="patient-name">Subject {int(row["subject_id"])}</div>'
+        f'<div class="patient-eyebrow">Adm {int(row["hadm_id"])} · ID {int(row["subject_id"])}</div>'
+        f'<div class="patient-name">{_html.escape(display_name)}</div>'
         f'<div class="patient-pills">'
         f'<span class="info-tag">Age {row.get("anchor_age", "—")}</span>'
         f'<span class="info-tag">{sex_label}</span>'
@@ -1601,7 +1605,7 @@ def render_overview(patients: pd.DataFrame) -> None:
     )
     fc1, fc2, fc3, fc4 = st.columns([2, 1.4, 1.4, 1.8])
     with fc1:
-        search = st.text_input("Search", placeholder="Subject or admission ID…", key="ov_search", label_visibility="collapsed")
+        search = st.text_input("Search", placeholder="Patient name or admission ID…", key="ov_search", label_visibility="collapsed")
     with fc2:
         st.markdown('<div class="filter-label">AKI Risk Tier</div>', unsafe_allow_html=True)
         sel_tier = st.radio("tier", ["All", "High", "Moderate", "Low"], key="ov_tier", horizontal=True, label_visibility="collapsed")
@@ -1618,6 +1622,7 @@ def render_overview(patients: pd.DataFrame) -> None:
     if search:
         q = search.strip()
         filtered = filtered[
+            filtered["display_name"].str.contains(q, case=False, na=False) |
             filtered["subject_id"].astype(str).str.contains(q, na=False) |
             filtered["hadm_id"].astype(str).str.contains(q, na=False)
         ]
@@ -1664,7 +1669,7 @@ def render_patient_detail(
     sorted_pts = patients.sort_values("aki_risk_score", ascending=False).reset_index(drop=True)
     hadm_list  = sorted_pts["hadm_id"].tolist()
     label_list = [
-        f"Admission {int(r.hadm_id)}  ·  Subject {int(r.subject_id)}  ·  {r.aki_risk_tier} Risk ({int(r.aki_risk_score)}/100)"
+        f"{r.get('display_name', f'Subject {int(r.subject_id)}')}  ·  Adm {int(r.hadm_id)}  ·  {r.aki_risk_tier} Risk ({int(r.aki_risk_score)}/100)"
         for _, r in sorted_pts.iterrows()
     ]
 
@@ -1827,7 +1832,7 @@ def render_marker_explorer(
     with f3:
         sorted_pts = patients.sort_values("aki_risk_score", ascending=False)
         pt_options = {
-            f"Adm {int(r.hadm_id)}  ·  {r.aki_risk_tier} ({int(r.aki_risk_score)})": int(r.hadm_id)
+            f"{r.get('display_name', f'Subject {int(r.subject_id)}')}  ·  {r.aki_risk_tier} ({int(r.aki_risk_score)})": int(r.hadm_id)
             for _, r in sorted_pts.iterrows()
         }
         sel_pt_label = st.selectbox("Patient admission", list(pt_options.keys()), key="me_patient")
@@ -1854,7 +1859,9 @@ def render_marker_explorer(
         )
         ts_by_key[mk_key] = vals
 
-    section_label(f"Markers · Admission {sel_hadm}", f"{len(pt_mkrs)} found")
+    sel_pt_row   = patients[patients["hadm_id"] == sel_hadm]
+    sel_pt_name  = sel_pt_row.iloc[0].get("display_name", f"Adm {sel_hadm}") if not sel_pt_row.empty else f"Adm {sel_hadm}"
+    section_label(f"Markers · {sel_pt_name}", f"{len(pt_mkrs)} found")
 
     if pt_mkrs.empty:
         st.markdown(
