@@ -16,6 +16,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from theme_toggle import render_theme_toggle, inject_theme_attribute, plotly_theme_layout, get_theme
+
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
@@ -35,80 +37,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-if "dark_mode" not in st.session_state:
-    st.session_state["dark_mode"] = False
-
-
 # ---------------------------------------------------------------------------
 # Custom CSS — ported from docs/design/styles.css
 # ---------------------------------------------------------------------------
-
-_DARK_VARS = """<style>
-:root {
-  --bg: #060d1b;
-  --bg-2: #0a1322;
-  --surface: #0d1626;
-  --surface-2: #111d33;
-  --surface-3: #15233b;
-  --border: #1a2e4a;
-  --border-2: #25406b;
-  --text-1: #f1f5f9;
-  --text-2: #e2e8f0;
-  --text-3: #94a3b8;
-  --text-muted: #475569;
-  --text-faint: #334155;
-  --accent-blue: #38bdf8;
-  --accent-blue-2: #3b82f6;
-  --accent-blue-deep: #1d4ed8;
-  --accent-cyan: #22d3ee;
-  --accent-info: #a78bfa;
-  --risk-high: #f87171;
-  --risk-high-2: #ef4444;
-  --risk-mod: #fbbf24;
-  --risk-mod-2: #d97706;
-  --risk-low: #4ade80;
-  --risk-low-2: #22c55e;
-  --gradient-accent: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 45%, #22d3ee 100%);
-  --radius: 14px;
-  --radius-sm: 8px;
-  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-}
-</style>"""
-
-_LIGHT_VARS = """<style>
-:root {
-  --bg: #f0f4f8;
-  --bg-2: #e8eef5;
-  --surface: #ffffff;
-  --surface-2: #f4f7fb;
-  --surface-3: #eaf0f7;
-  --border: #cdd8e8;
-  --border-2: #b0c2d8;
-  --text-1: #0f172a;
-  --text-2: #1e293b;
-  --text-3: #334155;
-  --text-muted: #64748b;
-  --text-faint: #94a3b8;
-  --accent-blue: #2563eb;
-  --accent-blue-2: #3b82f6;
-  --accent-blue-deep: #1d4ed8;
-  --accent-cyan: #0891b2;
-  --accent-info: #7c3aed;
-  --risk-high: #dc2626;
-  --risk-high-2: #ef4444;
-  --risk-mod: #d97706;
-  --risk-mod-2: #b45309;
-  --risk-low: #15803d;
-  --risk-low-2: #16a34a;
-  --gradient-accent: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 45%, #0891b2 100%);
-  --radius: 14px;
-  --radius-sm: 8px;
-  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-}
-/* override hardcoded dark bg values from CUSTOM_CSS */
-.hero-stat, .hero-watchlist { background: rgba(15,23,42,0.05) !important; }
-.mini-stat, .trend-explain  { background: rgba(15,23,42,0.05) !important; }
-</style>"""
 
 CUSTOM_CSS = """
 <style>
@@ -136,8 +67,7 @@ section[data-testid="stSidebar"] { background-color: var(--bg-2) !important; }
 [data-testid="stMainMenuButton"]      { display: none !important; }
 [data-testid="stConnectionStatus"]    { display: none !important; }
 [data-testid="stToolbarActions"]      { display: none !important; }
-[data-testid="stExpandSidebarButton"] { display: none !important; }
-[data-testid="stSidebarCollapseButton"] { display: none !important; }
+/* sidebar collapse/expand buttons left visible so users can toggle the panel */
 
 /* ── Sidebar content ── */
 .sidebar-brand { padding: 4px 0 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
@@ -924,9 +854,11 @@ div[data-testid="stToggle"] label p {
 </style>
 """
 
-_theme_css = _DARK_VARS if st.session_state.get("dark_mode", False) else _LIGHT_VARS
-st.markdown(_theme_css, unsafe_allow_html=True)
+_THEME_CSS_PATH = _ROOT / "docs" / "design" / "lightmode-specs" / "theme.css"
+st.markdown(f"<style>{_THEME_CSS_PATH.read_text()}</style>", unsafe_allow_html=True)
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+# Inject light-mode overrides last so they win the cascade without !important.
+inject_theme_attribute()
 
 
 # ---------------------------------------------------------------------------
@@ -1344,52 +1276,64 @@ def make_trend_chart(
     if df.empty:
         return None
 
+    tl = plotly_theme_layout()
+    is_dark = get_theme() == "dark"
+    grid_color  = tl["yaxis"]["gridcolor"]
+    line_color  = tl["xaxis"]["linecolor"]
+    tick_color  = "#475569" if is_dark else "#64748b"
+    hover_bg    = "#0d1626" if is_dark else "rgba(255,255,255,0.98)"
+    hover_border= "#25406b" if is_dark else "#e2e8f0"
+    hover_font  = "#e2e8f0" if is_dark else "#1e293b"
+    dot_border  = "#060d1b" if is_dark else "#ffffff"
+
     fill_rgba = accent.replace("#", "")
     r = int(fill_rgba[0:2], 16) if len(fill_rgba) == 6 else 56
     g = int(fill_rgba[2:4], 16) if len(fill_rgba) == 6 else 189
     b = int(fill_rgba[4:6], 16) if len(fill_rgba) == 6 else 248
 
     fig = go.Figure()
-    # Subtle filled area
     fig.add_trace(go.Scatter(
         x=df["charttime"], y=df["value"],
         mode="lines+markers",
         line=dict(color=accent, width=2, shape="linear"),
-        marker=dict(size=5, color=accent, line=dict(color="#060d1b", width=1.5)),
+        marker=dict(size=5, color=accent, line=dict(color=dot_border, width=1.5)),
         fill="tozeroy",
         fillcolor=f"rgba({r},{g},{b},0.07)",
         hovertemplate=f"%{{x|%b %d %H:%M}}<br><b>%{{y:.2f}} {unit}</b><extra></extra>",
         name=marker_name,
     ))
     fig.update_layout(
+        template=tl["template"],
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font_color=tl["font_color"],
+        font_family="Inter, sans-serif",
         title=dict(
-            text=f"<span style='font-size:12px;color:#94a3b8;font-family:Inter,sans-serif;font-weight:600'>{marker_name}</span>",
+            text=f"<span style='font-size:12px;color:{tick_color};font-family:Inter,sans-serif;font-weight:600'>{marker_name}</span>",
             x=0, pad=dict(b=6),
         ),
         margin=dict(l=8, r=8, t=36, b=8),
         height=220,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
         xaxis=dict(
             showgrid=False, zeroline=False,
-            tickfont=dict(size=9, color="#475569", family="JetBrains Mono, monospace"),
+            tickfont=dict(size=9, color=tick_color, family="JetBrains Mono, monospace"),
             tickformat="%b %d",
-            tickcolor="#1a2e4a",
-            linecolor="#1a2e4a",
+            tickcolor=line_color,
+            linecolor=line_color,
         ),
         yaxis=dict(
-            gridcolor="rgba(26,46,74,0.7)", gridwidth=1,
+            gridcolor=grid_color, gridwidth=1,
             zeroline=False,
-            tickfont=dict(size=9, color="#475569", family="JetBrains Mono, monospace"),
-            title=dict(text=unit, font=dict(size=9, color="#475569"), standoff=4),
-            tickcolor="#1a2e4a",
-            linecolor="#1a2e4a",
+            tickfont=dict(size=9, color=tick_color, family="JetBrains Mono, monospace"),
+            title=dict(text=unit, font=dict(size=9, color=tick_color), standoff=4),
+            tickcolor=line_color,
+            linecolor=line_color,
         ),
         hovermode="x unified",
         hoverlabel=dict(
-            bgcolor="#0d1626",
-            bordercolor="#25406b",
-            font=dict(color="#e2e8f0", size=12, family="Inter, sans-serif"),
+            bgcolor=hover_bg,
+            bordercolor=hover_border,
+            font=dict(color=hover_font, size=12, family="Inter, sans-serif"),
         ),
         showlegend=False,
     )
@@ -1631,7 +1575,8 @@ def render_patient_detail(
                         mk_unit = mk_ts["unit"].iloc[0] if not mk_ts.empty else ""
                         mk_summary = pt_mkrs[pt_mkrs["marker_key"] == mk]
                         _mk_status = mk_summary.iloc[0].get("status", "Normal") if not mk_summary.empty else "Normal"
-                        _mk_accent = "#f87171" if _mk_status == "High" else "#60a5fa" if _mk_status == "Low" else "#38bdf8"
+                        _is_dark = get_theme() == "dark"
+                        _mk_accent = ("#f87171" if _is_dark else "#dc2626") if _mk_status == "High" else ("#60a5fa" if _is_dark else "#2563eb") if _mk_status == "Low" else ("#38bdf8" if _is_dark else "#0284c7")
                         fig     = make_trend_chart(pt_ts, mk, mk_name, mk_unit, accent=_mk_accent)
                         if fig:
                             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
@@ -1779,7 +1724,8 @@ def render_marker_explorer(
         mk_unit = mk_ts["unit"].iloc[0] if not mk_ts.empty else ""
         _sel_row = pt_mkrs[pt_mkrs["marker_key"] == sel_mk]
         _sel_status = _sel_row.iloc[0].get("status", "Normal") if not _sel_row.empty else "Normal"
-        _sel_accent = "#f87171" if _sel_status == "High" else "#60a5fa" if _sel_status == "Low" else "#38bdf8"
+        _is_dark = get_theme() == "dark"
+        _sel_accent = ("#f87171" if _is_dark else "#dc2626") if _sel_status == "High" else ("#60a5fa" if _is_dark else "#2563eb") if _sel_status == "Low" else ("#38bdf8" if _is_dark else "#0284c7")
         fig     = make_trend_chart(pt_ts, sel_mk, mk_name, mk_unit, accent=_sel_accent)
         if fig:
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
@@ -1938,6 +1884,8 @@ def render_sidebar(patients: pd.DataFrame) -> None:
     low_n   = int((patients["aki_risk_tier"] == "Low").sum())
 
     with st.sidebar:
+        # Render the toggle first — it is position:fixed so DOM order doesn't matter.
+        render_theme_toggle()
         st.markdown(
             '<div class="strata-sidebar">'
 
@@ -2005,10 +1953,6 @@ def main() -> None:
         patients, markers, ts, aki = load_data()
 
     render_sidebar(patients)
-
-    # Fixed floating pill — position:fixed via CSS, column is just a render anchor
-    _mode_label = "☀  Light mode" if st.session_state.get("dark_mode", False) else "🌙  Dark mode"
-    st.toggle(_mode_label, key="dark_mode")
 
     tab_overview, tab_detail, tab_explorer, tab_about = st.tabs([
         "Overview",
