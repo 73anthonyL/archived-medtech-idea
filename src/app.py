@@ -32,7 +32,7 @@ st.set_page_config(
     page_title="Strata — Clinical Marker Intelligence",
     page_icon="⚕",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 if "dark_mode" not in st.session_state:
@@ -123,36 +123,14 @@ html, body, [class*="css"] {
 [data-testid="stHeader"] { background-color: var(--bg) !important; }
 section[data-testid="stSidebar"] { background-color: var(--bg-2) !important; }
 .block-container { padding-top: 1.5rem !important; }
-/* hide decorative toolbar elements (keep expand-sidebar button visible) */
-[data-testid="stStatusWidget"]    { display: none !important; }
-[data-testid="stAppDeployButton"] { display: none !important; }
-[data-testid="stMainMenuButton"]  { display: none !important; }
-[data-testid="stConnectionStatus"]{ display: none !important; }
-[data-testid="stToolbarActions"]  { display: none !important; }
-
-/* ── Sidebar expand button (shown in header when sidebar is collapsed) ── */
-[data-testid="stExpandSidebarButton"] button {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-sm) !important;
-  color: var(--text-3) !important;
-  cursor: pointer !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.18) !important;
-}
-[data-testid="stExpandSidebarButton"] button:hover {
-  border-color: var(--accent-blue) !important;
-  background: var(--surface-2) !important;
-  color: var(--accent-blue) !important;
-}
-
-/* collapse button inside the open sidebar */
-[data-testid="stSidebarCollapseButton"] button {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-sm) !important;
-  color: var(--text-3) !important;
-}
-[data-testid="stSidebarCollapseButton"] button:hover { border-color: var(--border-2) !important; }
+/* hide decorative toolbar elements and sidebar controls */
+[data-testid="stStatusWidget"]        { display: none !important; }
+[data-testid="stAppDeployButton"]     { display: none !important; }
+[data-testid="stMainMenuButton"]      { display: none !important; }
+[data-testid="stConnectionStatus"]    { display: none !important; }
+[data-testid="stToolbarActions"]      { display: none !important; }
+[data-testid="stExpandSidebarButton"] { display: none !important; }
+[data-testid="stSidebarCollapseButton"] { display: none !important; }
 
 /* ── Sidebar content ── */
 .sidebar-brand { padding: 4px 0 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
@@ -1758,125 +1736,13 @@ def render_about(patients: pd.DataFrame) -> None:
 # Main
 # ---------------------------------------------------------------------------
 
-def _render_sidebar(patients: pd.DataFrame) -> None:
-    """Render the full sidebar: branding, stats, nav guide, disclaimer."""
-    with st.sidebar:
-        # ── Brand ──
-        st.markdown(
-            '<div class="sidebar-brand">'
-            '<div class="sidebar-wordmark"><span>Strata</span></div>'
-            '<div class="sidebar-tagline">Clinical Marker Intelligence</div>'
-            '</div>',
-            unsafe_allow_html=True,
-        )
-
-        # ── Settings ──
-        st.markdown('<div class="sidebar-section-label">Settings</div>', unsafe_allow_html=True)
-        st.toggle("Dark mode", key="dark_mode")
-
-        st.divider()
-
-        # ── Dataset stats ──
-        n_total = len(patients)
-        n_icu = int(patients["has_icu_stay"].sum()) if "has_icu_stay" in patients.columns else 0
-        tier_counts = patients["aki_risk_tier"].value_counts() if "aki_risk_tier" in patients.columns else {}
-        n_high = int(tier_counts.get("High", 0))
-        n_mod  = int(tier_counts.get("Moderate", 0))
-        n_low  = int(tier_counts.get("Low", 0))
-        avg_abnormal = (
-            round(patients["abnormal_marker_count"].mean(), 1)
-            if "abnormal_marker_count" in patients.columns else "—"
-        )
-
-        st.markdown('<div class="sidebar-section-label">Dataset</div>', unsafe_allow_html=True)
-        st.markdown(
-            f"""<div>
-              <div class="sidebar-stat-row">
-                <span class="sidebar-stat-label">Admissions</span>
-                <span class="sidebar-stat-value">{n_total}</span>
-              </div>
-              <div class="sidebar-stat-row">
-                <span class="sidebar-stat-label">ICU stays</span>
-                <span class="sidebar-stat-value">{n_icu}</span>
-              </div>
-              <div class="sidebar-stat-row">
-                <span class="sidebar-stat-label">Avg abnormal markers</span>
-                <span class="sidebar-stat-value">{avg_abnormal}</span>
-              </div>
-            </div>""",
-            unsafe_allow_html=True,
-        )
-
-        st.markdown('<div class="sidebar-section-label">AKI Risk Tiers</div>', unsafe_allow_html=True)
-        st.markdown(
-            f"""<div class="sidebar-risk-chips">
-              <span class="risk-chip risk-chip-high">▲ {n_high} High</span>
-              <span class="risk-chip risk-chip-mod">● {n_mod} Mod</span>
-              <span class="risk-chip risk-chip-low">▼ {n_low} Low</span>
-            </div>""",
-            unsafe_allow_html=True,
-        )
-
-        st.divider()
-
-        # ── Navigation guide ──
-        st.markdown('<div class="sidebar-section-label">Navigation</div>', unsafe_allow_html=True)
-        st.markdown(
-            """<div>
-              <div class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">📊</span>
-                <div class="sidebar-nav-text">
-                  <span class="sidebar-nav-title">Overview</span>
-                  Cohort-level AKI risk summary and watchlist.
-                </div>
-              </div>
-              <div class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">🔬</span>
-                <div class="sidebar-nav-text">
-                  <span class="sidebar-nav-title">Patient Detail</span>
-                  Per-patient marker trends and AKI score breakdown.
-                </div>
-              </div>
-              <div class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">📈</span>
-                <div class="sidebar-nav-text">
-                  <span class="sidebar-nav-title">Marker Explorer</span>
-                  Cross-cohort distribution and lab trends.
-                </div>
-              </div>
-              <div class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">ℹ️</span>
-                <div class="sidebar-nav-text">
-                  <span class="sidebar-nav-title">About</span>
-                  Data sources, methodology, and disclaimer.
-                </div>
-              </div>
-            </div>""",
-            unsafe_allow_html=True,
-        )
-
-        st.divider()
-
-        # ── Disclaimer ──
-        st.markdown(
-            '<div class="sidebar-disclaimer">'
-            '<p>⚠ <strong>Demo only.</strong> MIMIC-IV Clinical Demo data. '
-            'Not validated for clinical use. All risk signals are for '
-            'demonstration purposes only.</p>'
-            '</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            '<div class="sidebar-version">Strata MVP · MIMIC-IV Demo</div>',
-            unsafe_allow_html=True,
-        )
-
-
 def main() -> None:
     with st.spinner("Loading Strata data…"):
         patients, markers, ts, aki = load_data()
 
-    _render_sidebar(patients)
+    _, col_toggle = st.columns([10, 2])
+    with col_toggle:
+        st.toggle("Dark mode", key="dark_mode")
 
     tab_overview, tab_detail, tab_explorer, tab_about = st.tabs([
         "Overview",
