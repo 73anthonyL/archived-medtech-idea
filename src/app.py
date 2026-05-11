@@ -123,43 +123,68 @@ html, body, [class*="css"] {
 [data-testid="stHeader"] { background-color: var(--bg) !important; }
 section[data-testid="stSidebar"] { background-color: var(--bg-2) !important; }
 .block-container { padding-top: 1.5rem !important; }
-/* hide the Streamlit toolbar/deploy/status bar so it doesn't overlap the tab row */
-[data-testid="stToolbar"]     { display: none !important; }
-[data-testid="stStatusWidget"]{ display: none !important; }
-[data-testid="stDeployButton"]{ display: none !important; }
+/* hide decorative toolbar elements (keep expand-sidebar button visible) */
+[data-testid="stStatusWidget"]    { display: none !important; }
+[data-testid="stAppDeployButton"] { display: none !important; }
+[data-testid="stMainMenuButton"]  { display: none !important; }
+[data-testid="stConnectionStatus"]{ display: none !important; }
+[data-testid="stToolbarActions"]  { display: none !important; }
 
-/* ── Hamburger sidebar toggle ── */
-[data-testid="collapsedControl"] {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 2.2rem !important;
-  height: 2.2rem !important;
+/* ── Sidebar expand button (shown in header when sidebar is collapsed) ── */
+[data-testid="stExpandSidebarButton"] button {
   background: var(--surface) !important;
   border: 1px solid var(--border) !important;
   border-radius: var(--radius-sm) !important;
-  top: 0.75rem !important;
-  left: 0.75rem !important;
+  color: var(--text-3) !important;
   cursor: pointer !important;
-  z-index: 999 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18) !important;
 }
-[data-testid="collapsedControl"] svg { display: none !important; }
-[data-testid="collapsedControl"]::after {
-  content: "≡";
-  font-size: 1.3rem;
-  color: var(--text-3);
-  line-height: 1;
+[data-testid="stExpandSidebarButton"] button:hover {
+  border-color: var(--accent-blue) !important;
+  background: var(--surface-2) !important;
+  color: var(--accent-blue) !important;
 }
-[data-testid="collapsedControl"]:hover { border-color: var(--border-2) !important; background: var(--surface-2) !important; }
 
 /* collapse button inside the open sidebar */
-[data-testid="baseButton-headerNoPadding"] {
+[data-testid="stSidebarCollapseButton"] button {
   background: var(--surface) !important;
   border: 1px solid var(--border) !important;
   border-radius: var(--radius-sm) !important;
   color: var(--text-3) !important;
 }
-[data-testid="baseButton-headerNoPadding"]:hover { border-color: var(--border-2) !important; }
+[data-testid="stSidebarCollapseButton"] button:hover { border-color: var(--border-2) !important; }
+
+/* ── Sidebar content ── */
+.sidebar-brand { padding: 4px 0 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.sidebar-wordmark { font-size: 22px; font-weight: 800; letter-spacing: -0.04em; color: var(--text-1); line-height: 1; }
+.sidebar-wordmark span { background: var(--gradient-accent); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sidebar-tagline { font-size: 10px; letter-spacing: 0.16em; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; font-weight: 500; }
+.sidebar-section-label {
+  font-size: 9.5px; letter-spacing: 0.2em; color: var(--text-muted);
+  text-transform: uppercase; font-weight: 600; margin: 16px 0 8px 0;
+}
+.sidebar-stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+.sidebar-stat-label { font-size: 12px; color: var(--text-3); }
+.sidebar-stat-value { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text-2); }
+.sidebar-risk-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.risk-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 9px; border-radius: 999px;
+  font-size: 11px; font-weight: 600; font-family: var(--mono);
+}
+.risk-chip-high   { background: rgba(248,113,113,0.12); color: var(--risk-high); border: 1px solid rgba(248,113,113,0.25); }
+.risk-chip-mod    { background: rgba(251,191,36,0.10); color: var(--risk-mod); border: 1px solid rgba(251,191,36,0.22); }
+.risk-chip-low    { background: rgba(74,222,128,0.10); color: var(--risk-low); border: 1px solid rgba(74,222,128,0.22); }
+.sidebar-nav-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+.sidebar-nav-icon { font-size: 14px; line-height: 1.4; flex-shrink: 0; }
+.sidebar-nav-text { font-size: 11.5px; color: var(--text-3); line-height: 1.45; }
+.sidebar-nav-title { font-weight: 600; color: var(--text-2); display: block; margin-bottom: 1px; }
+.sidebar-disclaimer {
+  background: rgba(251,191,36,0.05); border: 1px solid rgba(251,191,36,0.18);
+  border-radius: 8px; padding: 10px 12px; margin-top: 4px;
+}
+.sidebar-disclaimer p { font-size: 10.5px; color: var(--text-muted); line-height: 1.5; margin: 0; }
+.sidebar-version { font-size: 10px; color: var(--text-faint); text-align: center; margin-top: 14px; font-family: var(--mono); }
 
 /* ── Tabs ── */
 .stTabs [data-baseweb="tab-list"] {
@@ -1733,11 +1758,125 @@ def render_about(patients: pd.DataFrame) -> None:
 # Main
 # ---------------------------------------------------------------------------
 
-def main() -> None:
-    st.sidebar.toggle("Dark mode", key="dark_mode")
+def _render_sidebar(patients: pd.DataFrame) -> None:
+    """Render the full sidebar: branding, stats, nav guide, disclaimer."""
+    with st.sidebar:
+        # ── Brand ──
+        st.markdown(
+            '<div class="sidebar-brand">'
+            '<div class="sidebar-wordmark"><span>Strata</span></div>'
+            '<div class="sidebar-tagline">Clinical Marker Intelligence</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
+        # ── Settings ──
+        st.markdown('<div class="sidebar-section-label">Settings</div>', unsafe_allow_html=True)
+        st.toggle("Dark mode", key="dark_mode")
+
+        st.divider()
+
+        # ── Dataset stats ──
+        n_total = len(patients)
+        n_icu = int(patients["has_icu_stay"].sum()) if "has_icu_stay" in patients.columns else 0
+        tier_counts = patients["aki_risk_tier"].value_counts() if "aki_risk_tier" in patients.columns else {}
+        n_high = int(tier_counts.get("High", 0))
+        n_mod  = int(tier_counts.get("Moderate", 0))
+        n_low  = int(tier_counts.get("Low", 0))
+        avg_abnormal = (
+            round(patients["abnormal_marker_count"].mean(), 1)
+            if "abnormal_marker_count" in patients.columns else "—"
+        )
+
+        st.markdown('<div class="sidebar-section-label">Dataset</div>', unsafe_allow_html=True)
+        st.markdown(
+            f"""<div>
+              <div class="sidebar-stat-row">
+                <span class="sidebar-stat-label">Admissions</span>
+                <span class="sidebar-stat-value">{n_total}</span>
+              </div>
+              <div class="sidebar-stat-row">
+                <span class="sidebar-stat-label">ICU stays</span>
+                <span class="sidebar-stat-value">{n_icu}</span>
+              </div>
+              <div class="sidebar-stat-row">
+                <span class="sidebar-stat-label">Avg abnormal markers</span>
+                <span class="sidebar-stat-value">{avg_abnormal}</span>
+              </div>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+
+        st.markdown('<div class="sidebar-section-label">AKI Risk Tiers</div>', unsafe_allow_html=True)
+        st.markdown(
+            f"""<div class="sidebar-risk-chips">
+              <span class="risk-chip risk-chip-high">▲ {n_high} High</span>
+              <span class="risk-chip risk-chip-mod">● {n_mod} Mod</span>
+              <span class="risk-chip risk-chip-low">▼ {n_low} Low</span>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+
+        st.divider()
+
+        # ── Navigation guide ──
+        st.markdown('<div class="sidebar-section-label">Navigation</div>', unsafe_allow_html=True)
+        st.markdown(
+            """<div>
+              <div class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">📊</span>
+                <div class="sidebar-nav-text">
+                  <span class="sidebar-nav-title">Overview</span>
+                  Cohort-level AKI risk summary and watchlist.
+                </div>
+              </div>
+              <div class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">🔬</span>
+                <div class="sidebar-nav-text">
+                  <span class="sidebar-nav-title">Patient Detail</span>
+                  Per-patient marker trends and AKI score breakdown.
+                </div>
+              </div>
+              <div class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">📈</span>
+                <div class="sidebar-nav-text">
+                  <span class="sidebar-nav-title">Marker Explorer</span>
+                  Cross-cohort distribution and lab trends.
+                </div>
+              </div>
+              <div class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">ℹ️</span>
+                <div class="sidebar-nav-text">
+                  <span class="sidebar-nav-title">About</span>
+                  Data sources, methodology, and disclaimer.
+                </div>
+              </div>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+
+        st.divider()
+
+        # ── Disclaimer ──
+        st.markdown(
+            '<div class="sidebar-disclaimer">'
+            '<p>⚠ <strong>Demo only.</strong> MIMIC-IV Clinical Demo data. '
+            'Not validated for clinical use. All risk signals are for '
+            'demonstration purposes only.</p>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<div class="sidebar-version">Strata MVP · MIMIC-IV Demo</div>',
+            unsafe_allow_html=True,
+        )
+
+
+def main() -> None:
     with st.spinner("Loading Strata data…"):
         patients, markers, ts, aki = load_data()
+
+    _render_sidebar(patients)
 
     tab_overview, tab_detail, tab_explorer, tab_about = st.tabs([
         "Overview",
