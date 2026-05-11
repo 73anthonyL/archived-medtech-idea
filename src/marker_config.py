@@ -583,6 +583,17 @@ DIABETES_ICD_PREFIXES: list[str] = ["E10", "E11", "E12", "E13", "250"]
 # Hypertension
 HYPERTENSION_ICD_PREFIXES: list[str] = ["I10", "I11", "I12", "I13", "401", "402", "403"]
 
+# Sepsis and systemic infection context (ICD-9 and ICD-10)
+SEPSIS_ICD_PREFIXES: list[str] = [
+    "A40",   # Streptococcal sepsis (ICD-10)
+    "A41",   # Other sepsis (ICD-10)
+    "A22",   # Anthrax/septicemia (ICD-10)
+    "R65",   # SIRS / severe sepsis (ICD-10)
+    "B37",   # Candidal septicemia (ICD-10)
+    "038",   # Septicemia (ICD-9)
+    "995",   # Systemic inflammatory/sepsis response (ICD-9)
+]
+
 # Combined list used by aki_scoring.py
 COMORBIDITY_ICD_PREFIXES: list[str] = (
     CKD_ICD_PREFIXES + DIABETES_ICD_PREFIXES + HYPERTENSION_ICD_PREFIXES
