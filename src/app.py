@@ -15,6 +15,7 @@ import math
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
 
 from theme_toggle import render_theme_toggle, inject_theme_attribute, plotly_theme_layout, get_theme
 
@@ -59,7 +60,7 @@ html, body, [class*="css"] {
 [data-testid="stMarkdownContainer"] span,
 [data-testid="stMarkdownContainer"] li { color: var(--text-1) !important; }
 p, li { color: var(--text-1); }
-section[data-testid="stSidebar"] { background-color: var(--bg-2) !important; }
+section[data-testid="stSidebar"] { background: linear-gradient(180deg, #08111f 0%, #060d1b 100%) !important; border-right: 1px solid var(--border) !important; }
 .block-container { padding-top: 1.5rem !important; }
 /* hide decorative toolbar elements and sidebar controls */
 [data-testid="stStatusWidget"]        { display: none !important; }
@@ -735,21 +736,12 @@ table.arch-table tbody tr.row-total { background: rgba(56,189,248,0.04); }
 
 /* ── Sidebar overrides ── */
 section[data-testid="stSidebar"] > div:first-child { padding: 0 !important; }
-section[data-testid="stSidebar"] .block-container { padding: 0 !important; }
-.strata-sidebar {
-  background: linear-gradient(180deg, #08111f 0%, #060d1b 100%);
-  min-height: 100vh;
-  padding: 22px 18px 20px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  border-right: 1px solid var(--border);
-}
+section[data-testid="stSidebar"] .block-container { padding: 18px 14px 24px !important; }
 .strata-sidebar-brand {
   display: flex; align-items: center; gap: 10px;
   padding: 6px 6px 18px 6px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 16px;
+  margin-bottom: 4px;
 }
 .strata-sidebar-logo {
   width: 32px; height: 32px; border-radius: 8px;
@@ -778,7 +770,7 @@ section[data-testid="stSidebar"] .block-container { padding: 0 !important; }
 }
 .strata-cohort-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
 .strata-cohort-count { margin-left: auto; font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text-2); }
-.strata-sidebar-foot { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.strata-sidebar-foot { padding-top: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
 .strata-demo-pill {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 12px; border-radius: 10px;
@@ -794,6 +786,50 @@ section[data-testid="stSidebar"] .block-container { padding: 0 !important; }
 .strata-safety-line {
   font-size: 10px; color: var(--text-muted); letter-spacing: 0.06em; padding: 0 2px; line-height: 1.5;
 }
+
+/* ── Sidebar nav radio → vertical nav buttons ── */
+section[data-testid="stSidebar"] div[data-testid="stRadio"] { margin-bottom: 6px; }
+section[data-testid="stSidebar"] div[data-testid="stRadio"] > label { display: none !important; }
+section[data-testid="stSidebar"] div[data-testid="stRadio"] > div {
+  display: flex !important; flex-direction: column !important;
+  gap: 2px !important; background: transparent !important;
+  border: none !important; padding: 0 !important; width: 100% !important;
+}
+section[data-testid="stSidebar"] div[data-testid="stRadio"] > div > label {
+  display: flex !important; align-items: center !important;
+  background: transparent !important; border: 1px solid transparent !important;
+  border-radius: 8px !important; padding: 9px 12px !important;
+  font-size: 13px !important; font-weight: 500 !important;
+  color: var(--text-3) !important; cursor: pointer !important;
+  transition: all 0.14s ease !important; white-space: nowrap !important;
+  letter-spacing: 0.01em !important;
+}
+section[data-testid="stSidebar"] div[data-testid="stRadio"] > div > label:hover {
+  background: rgba(56,189,248,0.05) !important; color: var(--text-2) !important;
+}
+section[data-testid="stSidebar"] div[data-testid="stRadio"] > div > label:has(input:checked) {
+  background: linear-gradient(90deg, rgba(56,189,248,0.10), rgba(56,189,248,0.03)) !important;
+  border-color: rgba(56,189,248,0.28) !important;
+  color: var(--text-1) !important; font-weight: 600 !important;
+  box-shadow: inset 0 0 0 1px rgba(56,189,248,0.06) !important;
+}
+section[data-testid="stSidebar"] div[data-testid="stRadio"] input[type="radio"] { display: none !important; }
+
+/* ── Sidebar user block ── */
+.sidebar-user-block {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  background: rgba(56,189,248,0.04); border: 1px solid var(--border);
+  margin-top: 4px;
+}
+.sidebar-user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #1d4ed8 0%, #22d3ee 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.sidebar-user-name { font-size: 12.5px; font-weight: 600; color: var(--text-2); line-height: 1.2; }
+.sidebar-user-role { font-size: 10px; color: var(--text-muted); letter-spacing: 0.04em; margin-top: 1px; }
 
 /* ── Entry animations ── */
 @keyframes s-fadein {
@@ -1097,6 +1133,153 @@ def hero_html(patients: pd.DataFrame) -> str:
     )
 
 
+def render_hero_component(patients: pd.DataFrame) -> None:
+    """Render hero card via iframe so the JS live clock updates every second.
+
+    Uses hardcoded colors matched to the active theme since the iframe cannot
+    read parent-page CSS variables.
+    """
+    theme = get_theme()
+    is_dark = theme == "dark"
+
+    total_n  = len(patients)
+    high_n   = int((patients["aki_risk_tier"] == "High").sum())
+    mod_n    = int((patients["aki_risk_tier"] == "Moderate").sum())
+    avg_abn  = patients["abnormal_marker_count"].mean()
+    high_pct = round(high_n / total_n * 100) if total_n else 0
+    mod_pct  = round(mod_n  / total_n * 100) if total_n else 0
+
+    top_risk = (
+        patients[patients["aki_risk_tier"] == "High"]
+        .sort_values("aki_risk_score", ascending=False)
+        .head(8)
+    )
+    ticker_items = "".join(
+        f'<span class="t-item">'
+        f'<span class="t-sep">▸</span>'
+        f'<span class="t-id">#{int(r.hadm_id)}</span>'
+        f'<span class="t-score"> {int(r.aki_risk_score)}</span>'
+        f'<span class="t-con"> {_html.escape(str(r.get("top_concern", ""))[:42])}</span>'
+        f'</span>'
+        for _, r in top_risk.iterrows()
+    )
+    ticker_doubled = (ticker_items * 2) if ticker_items else ""
+
+    if is_dark:
+        body_bg   = "#060d1b"
+        card_bg   = "radial-gradient(ellipse at top right, rgba(29,78,216,0.10), transparent 60%), #0d1626"
+        card_bdr  = "#1a2e4a"
+        text1     = "#f1f5f9"
+        text2     = "#e2e8f0"
+        text3     = "#94a3b8"
+        muted     = "#475569"
+        surface   = "rgba(13,22,38,0.55)"
+        surf_bdr  = "#1a2e4a"
+        acc_blue  = "#38bdf8"
+        risk_high = "#f87171"
+        risk_mod  = "#fbbf24"
+        acc_info  = "#a78bfa"
+        tkr_bg    = "rgba(6,13,27,0.50)"
+    else:
+        body_bg   = "#f4f6fb"
+        card_bg   = "radial-gradient(900px 400px at 100% -20%, rgba(2,132,199,0.10), transparent 60%), #ffffff"
+        card_bdr  = "#e2e8f0"
+        text1     = "#0b1220"
+        text2     = "#1e293b"
+        text3     = "#475569"
+        muted     = "#64748b"
+        surface   = "#f5f7fb"
+        surf_bdr  = "#e2e8f0"
+        acc_blue  = "#0284c7"
+        risk_high = "#dc2626"
+        risk_mod  = "#d97706"
+        acc_info  = "#7c3aed"
+        tkr_bg    = "rgba(238,242,248,0.80)"
+
+    grad = "linear-gradient(90deg,#1d4ed8 0%,#3b82f6 45%,#22d3ee 100%)"
+
+    ticker_section = ""
+    if ticker_doubled:
+        ticker_section = f"""
+  <div class="tkr-wrap">
+    <div class="tkr-lbl"><span class="live-dot"></span>LIVE · WATCHLIST · HIGH RISK</div>
+    <div class="tkr-track"><div class="tkr-inner">{ticker_doubled}</div></div>
+  </div>"""
+
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{{margin:0;padding:0;box-sizing:border-box;}}
+html,body{{height:100%;background:{body_bg};font-family:'Inter',-apple-system,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;}}
+.hero{{background:{card_bg};border:1px solid {card_bdr};border-radius:14px;overflow:hidden;}}
+.top-bar{{height:3px;background:{grad};}}
+.grid{{display:grid;grid-template-columns:1.4fr 1fr;gap:28px;padding:22px 28px 18px;align-items:start;}}
+.eyebrow{{font-size:10px;letter-spacing:.22em;color:{acc_blue};font-weight:600;text-transform:uppercase;margin-bottom:10px;}}
+.wm{{font-size:50px;font-weight:800;letter-spacing:-.045em;line-height:.93;margin:0 0 8px;color:{text1};}}
+.wm .ac{{background:{grad};-webkit-background-clip:text;background-clip:text;color:transparent;}}
+.sub{{font-size:12.5px;font-weight:600;color:{text2};margin:0 0 6px;letter-spacing:.01em;}}
+.tgl{{font-size:12.5px;line-height:1.5;color:{text3};max-width:440px;margin-bottom:16px;}}
+.stats{{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}}
+.stat{{background:{surface};border:1px solid {surf_bdr};border-radius:10px;padding:10px 12px;}}
+.sv{{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1;margin-bottom:5px;font-variant-numeric:tabular-nums;}}
+.sl{{font-size:9px;letter-spacing:.16em;color:{text3};text-transform:uppercase;font-weight:600;}}
+.rgt{{display:flex;flex-direction:column;gap:12px;}}
+.pill{{display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border-radius:999px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.30);font-size:11px;letter-spacing:.16em;color:{acc_blue};font-weight:600;text-transform:uppercase;width:fit-content;}}
+.pdot{{width:7px;height:7px;border-radius:50%;background:{acc_blue};box-shadow:0 0 10px {acc_blue};flex-shrink:0;animation:pulse 1.6s ease-in-out infinite;}}
+@keyframes pulse{{0%,100%{{opacity:.55;transform:scale(.9);}}50%{{opacity:1;transform:scale(1.15);}}}}
+.ck-box{{background:{surface};border:1px solid {surf_bdr};border-radius:10px;padding:12px 16px;}}
+.ck-lbl{{font-size:9px;letter-spacing:.20em;color:{muted};text-transform:uppercase;font-weight:600;margin-bottom:6px;}}
+.ck-time{{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1;color:{text2};font-variant-numeric:tabular-nums;}}
+.disc{{font-size:10.5px;color:{muted};line-height:1.5;}}
+.tkr-wrap{{border-top:1px solid {surf_bdr};background:{tkr_bg};padding:8px 0 10px;}}
+.tkr-lbl{{font-size:9px;letter-spacing:.20em;color:{muted};text-transform:uppercase;font-weight:600;padding:0 16px 6px;display:flex;align-items:center;gap:6px;}}
+.live-dot{{width:5px;height:5px;border-radius:50%;background:{risk_high};box-shadow:0 0 6px {risk_high};flex-shrink:0;animation:pulse 1.6s ease-in-out infinite;}}
+.tkr-track{{overflow:hidden;mask-image:linear-gradient(90deg,transparent,black 4%,black 96%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,black 4%,black 96%,transparent);}}
+.tkr-inner{{display:flex;gap:0;animation:scroll 38s linear infinite;white-space:nowrap;}}
+@keyframes scroll{{from{{transform:translateX(0);}}to{{transform:translateX(-50%);}}}}
+.t-item{{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:0 18px 0 0;}}
+.t-sep{{color:{muted};font-size:9px;}}
+.t-id{{color:{text3};font-family:'JetBrains Mono',monospace;font-size:10.5px;}}
+.t-score{{font-family:'JetBrains Mono',monospace;font-weight:700;color:{risk_high};font-size:11px;}}
+.t-con{{color:{text3};font-size:10.5px;}}
+</style></head>
+<body>
+<div class="hero">
+  <div class="top-bar"></div>
+  <div class="grid">
+    <div>
+      <div class="eyebrow">Clinical Marker Intelligence · AKI Early-Warning Module</div>
+      <div class="wm">Str<span class="ac">a</span>ta</div>
+      <div class="sub">Clinical Marker Intelligence + AKI Early-Warning</div>
+      <div class="tgl">Surface abnormal labs, vital trends, and kidney deterioration signals from structured EHR data.</div>
+      <div class="stats">
+        <div class="stat"><div class="sv" style="color:{text2};">{total_n}</div><div class="sl">Admissions</div></div>
+        <div class="stat"><div class="sv" style="color:{risk_high};">{high_n}</div><div class="sl">High Risk · {high_pct}%</div></div>
+        <div class="stat"><div class="sv" style="color:{risk_mod};">{mod_n}</div><div class="sl">Moderate · {mod_pct}%</div></div>
+        <div class="stat"><div class="sv" style="color:{acc_info};">{avg_abn:.1f}</div><div class="sl">Avg Abnormal</div></div>
+      </div>
+    </div>
+    <div class="rgt">
+      <div class="pill"><span class="pdot"></span>Demo Mode</div>
+      <div class="ck-box">
+        <div class="ck-lbl">SESSION · LOCAL TIME</div>
+        <div class="ck-time" id="ck">--:--:--</div>
+      </div>
+      <div class="disc">Not diagnostic · For clinical review only</div>
+    </div>
+  </div>
+  {ticker_section}
+</div>
+<script>
+function tick(){{var n=new Date(),el=document.getElementById('ck');if(el)el.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');}}
+tick();setInterval(tick,1000);
+</script>
+</body></html>"""
+
+    components.html(html, height=360, scrolling=False)
+
+
 def build_patient_table_html(df: pd.DataFrame) -> str:
     """Patient admissions table with row rail and score bar."""
     rows = []
@@ -1376,7 +1559,7 @@ def section_label(text: str, meta: str = "") -> None:
 # ---------------------------------------------------------------------------
 
 def render_overview(patients: pd.DataFrame) -> None:
-    st.markdown(hero_html(patients), unsafe_allow_html=True)
+    render_hero_component(patients)
 
     total_n = len(patients)
     high_n  = int((patients["aki_risk_tier"] == "High").sum())
@@ -1896,69 +2079,90 @@ def render_about(patients: pd.DataFrame) -> None:
 # Sidebar
 # ---------------------------------------------------------------------------
 
+_NAV_MAP: dict[str, str] = {
+    "▣  Overview":         "Overview",
+    "◉  Patient Detail":   "Patient Detail",
+    "◈  Marker Explorer":  "Marker Explorer",
+    "○  About":            "About",
+}
+_PAGE_TO_OPT: dict[str, str] = {v: k for k, v in _NAV_MAP.items()}
+
+
 def render_sidebar(patients: pd.DataFrame) -> None:
-    """Styled sidebar matching the design's sidebar-brand + cohort legend."""
+    """Sidebar with brand, vertical nav, cohort summary, demo badge, and user block."""
     total_n = len(patients)
     high_n  = int((patients["aki_risk_tier"] == "High").sum())
     mod_n   = int((patients["aki_risk_tier"] == "Moderate").sum())
     low_n   = int((patients["aki_risk_tier"] == "Low").sum())
 
     with st.sidebar:
-        # Render the toggle first — it is position:fixed so DOM order doesn't matter.
+        # Theme toggle is position:fixed — DOM order doesn't matter.
         render_theme_toggle()
-        st.markdown(
-            '<div class="strata-sidebar">'
 
-            # ── Brand
+        # ── Brand
+        st.markdown(
             '<div class="strata-sidebar-brand">'
-            '<div class="strata-sidebar-logo">'
-            '<div class="strata-sidebar-logo-inner"></div>'
-            '</div>'
+            '<div class="strata-sidebar-logo"><div class="strata-sidebar-logo-inner"></div></div>'
             '<div>'
             '<div class="strata-sidebar-wordmark">Str<span class="accent">a</span>ta</div>'
             '<div class="strata-sidebar-tagline">Clinical Signal Layer</div>'
             '</div>'
-            '</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
-            # ── Cohort section label
-            '<div class="strata-section-label">Cohort</div>'
+        # ── Workspace nav
+        st.markdown('<div class="strata-section-label">Workspace</div>', unsafe_allow_html=True)
+        current_page = st.session_state.get("active_page", "Overview")
+        default_opt  = _PAGE_TO_OPT.get(current_page, list(_NAV_MAP.keys())[0])
+        nav_opts     = list(_NAV_MAP.keys())
+        selected_opt = st.radio(
+            "Navigation",
+            nav_opts,
+            index=nav_opts.index(default_opt),
+            label_visibility="collapsed",
+            key="sidebar_nav_radio",
+        )
+        st.session_state.active_page = _NAV_MAP.get(selected_opt, "Overview")
 
-            # ── Cohort rows
+        # ── Cohort summary
+        st.markdown(
+            '<div class="strata-section-label" style="margin-top:8px;">Cohort</div>'
             f'<div class="strata-cohort-row">'
             f'<span class="strata-cohort-dot" style="background:#f87171;"></span>'
-            f'<span>High Risk</span>'
-            f'<span class="strata-cohort-count">{high_n}</span>'
+            f'<span>High</span><span class="strata-cohort-count">{high_n}</span>'
             f'</div>'
-
             f'<div class="strata-cohort-row">'
             f'<span class="strata-cohort-dot" style="background:#fbbf24;"></span>'
-            f'<span>Moderate</span>'
-            f'<span class="strata-cohort-count">{mod_n}</span>'
+            f'<span>Moderate</span><span class="strata-cohort-count">{mod_n}</span>'
             f'</div>'
-
             f'<div class="strata-cohort-row">'
             f'<span class="strata-cohort-dot" style="background:#4ade80;"></span>'
-            f'<span>Low</span>'
-            f'<span class="strata-cohort-count">{low_n}</span>'
+            f'<span>Low</span><span class="strata-cohort-count">{low_n}</span>'
             f'</div>'
-
             f'<div class="strata-cohort-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">'
-            f'<span style="color:var(--text-muted);font-size:11px;">Total admissions</span>'
+            f'<span style="color:var(--text-muted);font-size:11px;">Total</span>'
             f'<span class="strata-cohort-count">{total_n}</span>'
-            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
-            # ── Footer
+        # ── Footer: demo badge + reviewer block
+        st.markdown(
             '<div class="strata-sidebar-foot">'
             '<div class="strata-demo-pill">'
-            '<span class="strata-demo-dot"></span>'
-            '<span>DEMO MODE</span>'
+            '<span class="strata-demo-dot"></span><span>DEMO MODE</span>'
             '</div>'
             '<div class="strata-safety-line">'
-            'Not diagnostic · For clinical review only.<br>'
-            'MIMIC-IV Clinical Demo v2.2'
+            'Not diagnostic · For clinical review only.<br>MIMIC-IV Clinical Demo v2.2'
+            '</div>'
+            '<div class="sidebar-user-block">'
+            '<div class="sidebar-user-avatar">CL</div>'
+            '<div>'
+            '<div class="sidebar-user-name">Clinical Lead</div>'
+            '<div class="sidebar-user-role">Reviewer · Demo Access</div>'
             '</div>'
             '</div>'
-
             '</div>',
             unsafe_allow_html=True,
         )
@@ -1969,28 +2173,22 @@ def render_sidebar(patients: pd.DataFrame) -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    if "active_page" not in st.session_state:
+        st.session_state.active_page = "Overview"
+
     with st.spinner("Loading Strata data…"):
         patients, markers, ts, aki = load_data()
 
     render_sidebar(patients)
 
-    tab_overview, tab_detail, tab_explorer, tab_about = st.tabs([
-        "Overview",
-        "Patient Detail",
-        "Marker Explorer",
-        "About / Disclaimer",
-    ])
-
-    with tab_overview:
+    page = st.session_state.get("active_page", "Overview")
+    if page == "Overview":
         render_overview(patients)
-
-    with tab_detail:
+    elif page == "Patient Detail":
         render_patient_detail(patients, markers, ts, aki)
-
-    with tab_explorer:
+    elif page == "Marker Explorer":
         render_marker_explorer(patients, markers, ts)
-
-    with tab_about:
+    else:
         render_about(patients)
 
 

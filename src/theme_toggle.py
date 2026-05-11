@@ -76,6 +76,10 @@ body {
 }
 
 /* ── Sidebar ── */
+section[data-testid="stSidebar"] {
+  background: linear-gradient(180deg, #ffffff 0%, #f7f9fd 100%) !important;
+  border-right: 1px solid var(--border) !important;
+}
 .sidebar,
 .strata-sidebar {
   background: linear-gradient(180deg, #ffffff 0%, #f7f9fd 100%);
@@ -83,6 +87,7 @@ body {
 }
 .sidebar-logo { box-shadow: 0 4px 14px rgba(37,99,235,0.18); }
 .sidebar-logo::after { background: #ffffff; }
+.strata-sidebar-logo-inner { background: #ffffff !important; }
 .nav-item:hover { background: rgba(2,132,199,0.06); }
 .nav-item.active {
   background: linear-gradient(90deg, rgba(2,132,199,0.10), rgba(2,132,199,0.02));
