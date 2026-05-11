@@ -141,6 +141,30 @@ body {
   box-shadow: 0 1px 0 rgba(15,23,42,0.04), 0 2px 8px rgba(15,23,42,0.06);
 }
 
+/* ── Streamlit native widget overrides ── */
+div[data-baseweb="input"] > div {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+div[data-baseweb="input"] input {
+  color: #0b1220 !important;
+  background-color: transparent !important;
+}
+div[data-baseweb="input"] input::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+div[data-baseweb="select"] > div {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+div[data-testid="stMultiSelect"] > div {
+  background-color: #ffffff !important;
+}
+div[data-testid="stMultiSelect"] span {
+  color: #1e293b !important;
+}
+
 /* ── Badges & tags ── */
 .status-pill.high  { background: rgba(220,38,38,0.08); color: var(--risk-high); border-color: rgba(220,38,38,0.30); }
 .status-pill.low   { background: rgba(2,132,199,0.08); color: var(--accent-blue); border-color: rgba(2,132,199,0.30); }
@@ -209,7 +233,7 @@ body {
 
 
 def get_theme() -> str:
-    """Return current theme — 'dark' (default) or 'light'.
+    """Return current theme — 'light' (default) or 'dark'.
 
     Reads the toggle widget key directly so this returns the correct value even
     when called before render_theme_toggle() in the same script run (e.g. during
@@ -217,8 +241,9 @@ def get_theme() -> str:
     Streamlit from the browser state before any Python code runs.
     """
     if "strata_theme_toggle" in st.session_state:
-        return "light" if st.session_state["strata_theme_toggle"] else "dark"
-    return st.session_state.get("strata_theme", "dark")
+        # Toggle ON = dark mode
+        return "dark" if st.session_state["strata_theme_toggle"] else "light"
+    return st.session_state.get("strata_theme", "light")
 
 
 def set_theme(theme: str) -> None:
@@ -227,11 +252,11 @@ def set_theme(theme: str) -> None:
     st.session_state.strata_theme = theme
 
 
-def render_theme_toggle(label: str = "Light mode") -> str:
+def render_theme_toggle(label: str = "Dark mode") -> str:
     """Render a Streamlit toggle widget. Returns the current theme."""
     current = get_theme()
-    is_light = st.toggle(label, value=(current == "light"), key="strata_theme_toggle")
-    theme = "light" if is_light else "dark"
+    is_dark = st.toggle(label, value=(current == "dark"), key="strata_theme_toggle")
+    theme = "dark" if is_dark else "light"
     set_theme(theme)
     return theme
 
