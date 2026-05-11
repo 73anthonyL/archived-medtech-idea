@@ -67,7 +67,22 @@ section[data-testid="stSidebar"] { background-color: var(--bg-2) !important; }
 [data-testid="stMainMenuButton"]      { display: none !important; }
 [data-testid="stConnectionStatus"]    { display: none !important; }
 [data-testid="stToolbarActions"]      { display: none !important; }
-/* sidebar collapse/expand buttons left visible so users can toggle the panel */
+/* ── Sidebar collapse button — always visible ── */
+[data-testid="stSidebarHeader"] {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapseButton"] > button {
+  opacity: 1 !important;
+  visibility: visible !important;
+  color: var(--text-3) !important;
+}
+[data-testid="stSidebarCollapseButton"]:hover > button,
+[data-testid="stSidebarCollapseButton"] > button:hover {
+  color: var(--text-1) !important;
+  background: var(--surface-2) !important;
+}
 
 /* ── Sidebar content ── */
 .sidebar-brand { padding: 4px 0 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 14px; }

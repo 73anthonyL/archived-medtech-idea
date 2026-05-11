@@ -228,6 +228,16 @@ div[data-testid="stMultiSelect"] span {
 .clock-num { color: var(--text-1); }
 .clock-ss  { color: var(--text-faint); }
 .row-total { background: rgba(2,132,199,0.04); }
+
+/* ── Sidebar collapse button — light mode contrast ── */
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapseButton"] > button {
+  color: var(--text-3) !important;
+}
+[data-testid="stSidebarCollapseButton"] > button:hover {
+  color: var(--text-1) !important;
+  background: rgba(2,132,199,0.08) !important;
+}
 </style>
 """
 
@@ -261,15 +271,20 @@ def render_theme_toggle(label: str = "Dark mode") -> str:
     return theme
 
 
-def inject_theme_attribute() -> None:
-    """Inject light-mode CSS overrides when theme is 'light'.
+_DARK_MODE_PLACEHOLDER = "<style>/* Strata dark mode */</style>"
 
-    Call this AFTER all base and custom CSS has been injected so the
-    light-mode rules win the cascade without needing !important on every rule.
-    Does nothing in dark mode (dark is the default defined in theme.css).
+
+def inject_theme_attribute() -> None:
+    """Inject theme CSS overrides after base CSS.
+
+    Always calls st.markdown() in both modes so the DOM structure is identical
+    between light and dark — this prevents layout shifts caused by an extra
+    element appearing only in one mode.
     """
-    if get_theme() == "light":
-        st.markdown(_LIGHT_MODE_CSS, unsafe_allow_html=True)
+    st.markdown(
+        _LIGHT_MODE_CSS if get_theme() == "light" else _DARK_MODE_PLACEHOLDER,
+        unsafe_allow_html=True,
+    )
 
 
 # ----- Plotly helper -----
