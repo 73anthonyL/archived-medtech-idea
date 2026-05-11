@@ -78,6 +78,11 @@ section[data-testid="stSidebar"] { background-color: var(--bg-2) !important; }
   visibility: visible !important;
   color: var(--text-3) !important;
 }
+[data-testid="stSidebarCollapseButton"] > button svg,
+[data-testid="stSidebarCollapseButton"] > button svg path {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
 [data-testid="stSidebarCollapseButton"]:hover > button,
 [data-testid="stSidebarCollapseButton"] > button:hover {
   color: var(--text-1) !important;

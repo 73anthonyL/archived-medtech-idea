@@ -234,6 +234,11 @@ div[data-testid="stMultiSelect"] span {
 [data-testid="stSidebarCollapseButton"] > button {
   color: var(--text-3) !important;
 }
+[data-testid="stSidebarCollapseButton"] > button svg,
+[data-testid="stSidebarCollapseButton"] > button svg path {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
 [data-testid="stSidebarCollapseButton"] > button:hover {
   color: var(--text-1) !important;
   background: rgba(2,132,199,0.08) !important;
