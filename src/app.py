@@ -32,7 +32,7 @@ st.set_page_config(
     page_title="Strata — Clinical Marker Intelligence",
     page_icon="⚕",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 if "dark_mode" not in st.session_state:
@@ -783,6 +783,94 @@ table.arch-table tbody tr.row-total { background: rgba(56,189,248,0.04); }
 .disclaimer-title { font-size: 11px; letter-spacing: 0.18em; color: var(--risk-mod); font-weight: 700; margin-bottom: 6px; text-transform: uppercase; }
 .disclaimer-text { font-size: 12.5px; color: var(--text-3); line-height: 1.55; max-width: 860px; }
 
+/* ── Sidebar overrides ── */
+section[data-testid="stSidebar"] > div:first-child { padding: 0 !important; }
+section[data-testid="stSidebar"] .block-container { padding: 0 !important; }
+.strata-sidebar {
+  background: linear-gradient(180deg, #08111f 0%, #060d1b 100%);
+  min-height: 100vh;
+  padding: 22px 18px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-right: 1px solid var(--border);
+}
+.strata-sidebar-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 6px 18px 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.strata-sidebar-logo {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 45%, #22d3ee 100%);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(56,189,248,0.25);
+  flex-shrink: 0;
+}
+.strata-sidebar-logo-inner {
+  width: 14px; height: 14px; border-radius: 4px;
+  background: #060d1b;
+}
+.strata-sidebar-wordmark {
+  font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-1); line-height: 1;
+}
+.strata-sidebar-wordmark .accent { background: linear-gradient(90deg,#3b82f6,#22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.strata-sidebar-tagline { font-size: 9.5px; letter-spacing: 0.16em; color: var(--text-3); text-transform: uppercase; margin-top: 3px; }
+.strata-section-label {
+  font-size: 9.5px; letter-spacing: 0.20em; color: var(--text-muted);
+  text-transform: uppercase; font-weight: 600;
+  padding: 14px 8px 6px 8px;
+}
+.strata-cohort-row {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12.5px; color: var(--text-3); padding: 4px 8px;
+}
+.strata-cohort-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.strata-cohort-count { margin-left: auto; font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text-2); }
+.strata-sidebar-foot { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.strata-demo-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: 10px;
+  background: rgba(56,189,248,0.05); border: 1px solid rgba(56,189,248,0.2);
+  font-size: 11px; color: var(--accent-blue); letter-spacing: 0.06em; font-weight: 600;
+}
+.strata-demo-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent-blue);
+  box-shadow: 0 0 8px var(--accent-blue);
+  animation: s-pulse 1.6s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.strata-safety-line {
+  font-size: 10px; color: var(--text-muted); letter-spacing: 0.06em; padding: 0 2px; line-height: 1.5;
+}
+
+/* ── Entry animations ── */
+@keyframes s-fadein {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes s-slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-card         { animation: s-slide-up 0.50s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .kpi-grid          { animation: s-fadein   0.45s ease 0.05s both; }
+  .filter-card       { animation: s-fadein   0.40s ease 0.10s both; }
+  .table-card        { animation: s-fadein   0.40s ease 0.15s both; }
+  .about-hero        { animation: s-slide-up 0.50s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .disclaimer-card   { animation: s-fadein   0.40s ease 0.20s both; }
+  .marker-card       { animation: s-fadein   0.35s ease both; }
+  .patient-summary-card { animation: s-slide-up 0.45s ease both; }
+  .aki-risk-card     { animation: s-slide-up 0.45s ease 0.06s both; }
+}
+
+/* ── Filter panel header ── */
+.filter-panel-header { margin-bottom: 14px; }
+.filter-panel-title  { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 3px; }
+.filter-panel-sub    { font-size: 11.5px; color: var(--text-3); line-height: 1.4; }
+
 /* ── Theme toggle — fixed floating pill, always visible ── */
 @keyframes toggle-pulse {
   0%   { box-shadow: 0 4px 20px rgba(0,0,0,0.30), 0 0 0 0   rgba(139,92,246,0.60), 0 0 10px 2px rgba(139,92,246,0.28); }
@@ -1021,9 +1109,11 @@ def hero_html(patients: pd.DataFrame) -> str:
         f'<div>'
         f'<div class="hero-eyebrow">Clinical Marker Intelligence · AKI Early-Warning Module</div>'
         f'<div class="hero-wordmark">Str<span class="hero-accent">a</span>ta</div>'
+        f'<div style="font-size:13px;font-weight:600;color:var(--text-2);margin:-4px 0 8px 0;letter-spacing:0.01em;">'
+        f'Clinical Marker Intelligence + AKI Early-Warning'
+        f'</div>'
         f'<div class="hero-tagline">'
-        f'A clinical signal intelligence layer. Surfaces meaningful patterns across labs, vitals, '
-        f'and diagnosis context from structured EHR data.'
+        f'Surface abnormal labs, vital trends, and kidney deterioration signals from structured EHR data.'
         f'</div>'
         f'<div class="hero-stats">'
         f'<div class="hero-stat">'
@@ -1046,9 +1136,9 @@ def hero_html(patients: pd.DataFrame) -> str:
         f'</div>'
         # right
         f'<div class="hero-right">'
-        f'<div class="demo-mode-pill"><span class="demo-dot"></span>Demo Mode · Not Diagnostic</div>'
+        f'<div class="demo-mode-pill"><span class="demo-dot"></span>Demo Mode</div>'
         f'{watchlist_html}'
-        f'<div class="hero-disclaimer-inline">For clinical review only<br>Not a diagnostic device</div>'
+        f'<div class="hero-disclaimer-inline">Not diagnostic · For clinical review only</div>'
         f'</div>'
         f'</div>'
         f'</div>'
@@ -1242,32 +1332,66 @@ def aki_card_html(row: pd.Series) -> str:
     )
 
 
-def make_trend_chart(ts_df: pd.DataFrame, marker_key: str, marker_name: str, unit: str) -> go.Figure | None:
-    """Dark-themed Plotly area chart for a single marker's time series."""
+def make_trend_chart(
+    ts_df: pd.DataFrame,
+    marker_key: str,
+    marker_name: str,
+    unit: str,
+    accent: str = "#38bdf8",
+) -> go.Figure | None:
+    """Dark-themed Plotly area chart matching the design's visual language."""
     df = ts_df[ts_df["marker_key"] == marker_key].sort_values("charttime")
     if df.empty:
         return None
+
+    fill_rgba = accent.replace("#", "")
+    r = int(fill_rgba[0:2], 16) if len(fill_rgba) == 6 else 56
+    g = int(fill_rgba[2:4], 16) if len(fill_rgba) == 6 else 189
+    b = int(fill_rgba[4:6], 16) if len(fill_rgba) == 6 else 248
+
     fig = go.Figure()
+    # Subtle filled area
     fig.add_trace(go.Scatter(
-        x=df["charttime"],
-        y=df["value"],
+        x=df["charttime"], y=df["value"],
         mode="lines+markers",
-        line=dict(color="#38bdf8", width=2),
-        marker=dict(size=5, color="#38bdf8", line=dict(color="#060d1b", width=1.5)),
+        line=dict(color=accent, width=2, shape="linear"),
+        marker=dict(size=5, color=accent, line=dict(color="#060d1b", width=1.5)),
         fill="tozeroy",
-        fillcolor="rgba(56,189,248,0.06)",
-        hovertemplate=f"%{{x|%b %d, %H:%M}}<br><b>%{{y:.1f}} {unit}</b><extra></extra>",
+        fillcolor=f"rgba({r},{g},{b},0.07)",
+        hovertemplate=f"%{{x|%b %d %H:%M}}<br><b>%{{y:.2f}} {unit}</b><extra></extra>",
+        name=marker_name,
     ))
     fig.update_layout(
-        title=dict(text=f"<b>{marker_name}</b>", font=dict(size=13, color="#94a3b8", family="Inter"), x=0, pad=dict(b=4)),
-        margin=dict(l=0, r=0, t=38, b=0),
-        height=230,
+        title=dict(
+            text=f"<span style='font-size:12px;color:#94a3b8;font-family:Inter,sans-serif;font-weight:600'>{marker_name}</span>",
+            x=0, pad=dict(b=6),
+        ),
+        margin=dict(l=8, r=8, t=36, b=8),
+        height=220,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        xaxis=dict(showgrid=False, zeroline=False, tickfont=dict(size=10, color="#475569", family="Inter"), tickformat="%b %d"),
-        yaxis=dict(gridcolor="#1a2e4a", gridwidth=1, zeroline=False, tickfont=dict(size=10, color="#475569", family="Inter"), title=dict(text=unit, font=dict(size=10, color="#475569"))),
+        xaxis=dict(
+            showgrid=False, zeroline=False,
+            tickfont=dict(size=9, color="#475569", family="JetBrains Mono, monospace"),
+            tickformat="%b %d",
+            tickcolor="#1a2e4a",
+            linecolor="#1a2e4a",
+        ),
+        yaxis=dict(
+            gridcolor="rgba(26,46,74,0.7)", gridwidth=1,
+            zeroline=False,
+            tickfont=dict(size=9, color="#475569", family="JetBrains Mono, monospace"),
+            title=dict(text=unit, font=dict(size=9, color="#475569"), standoff=4),
+            tickcolor="#1a2e4a",
+            linecolor="#1a2e4a",
+        ),
         hovermode="x unified",
-        hoverlabel=dict(bgcolor="#0d1626", bordercolor="#1a2e4a", font=dict(color="#e2e8f0", size=12, family="Inter")),
+        hoverlabel=dict(
+            bgcolor="#0d1626",
+            bordercolor="#25406b",
+            font=dict(color="#e2e8f0", size=12, family="Inter, sans-serif"),
+        ),
+        showlegend=False,
     )
     return fig
 
@@ -1314,7 +1438,14 @@ def render_overview(patients: pd.DataFrame) -> None:
 
     # ── Filters
     section_label("Triage Filters")
-    st.markdown('<div class="filter-card">', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="filter-card">'
+        '<div class="filter-panel-header">'
+        '<div class="filter-panel-title">Triage Filters</div>'
+        '<div class="filter-panel-sub">Narrow admissions by risk tier, ICU status, or admission type.</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
     fc1, fc2, fc3, fc4 = st.columns([2, 1.4, 1.4, 1.8])
     with fc1:
         search = st.text_input("Search", placeholder="Subject or admission ID…", key="ov_search", label_visibility="collapsed")
@@ -1498,10 +1629,12 @@ def render_patient_detail(
                         mk_ts   = pt_ts[pt_ts["marker_key"] == mk]
                         mk_name = key_to_name.get(mk, mk)
                         mk_unit = mk_ts["unit"].iloc[0] if not mk_ts.empty else ""
-                        fig     = make_trend_chart(pt_ts, mk, mk_name, mk_unit)
+                        mk_summary = pt_mkrs[pt_mkrs["marker_key"] == mk]
+                        _mk_status = mk_summary.iloc[0].get("status", "Normal") if not mk_summary.empty else "Normal"
+                        _mk_accent = "#f87171" if _mk_status == "High" else "#60a5fa" if _mk_status == "Low" else "#38bdf8"
+                        fig     = make_trend_chart(pt_ts, mk, mk_name, mk_unit, accent=_mk_accent)
                         if fig:
                             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
-                            mk_summary = pt_mkrs[pt_mkrs["marker_key"] == mk]
                             if not mk_summary.empty:
                                 exp    = str(mk_summary.iloc[0].get("explanation", ""))
                                 status = mk_summary.iloc[0].get("status", "Normal")
@@ -1644,7 +1777,10 @@ def render_marker_explorer(
         mk_ts   = pt_ts[pt_ts["marker_key"] == sel_mk]
         mk_name = key_to_name.get(sel_mk, sel_mk)
         mk_unit = mk_ts["unit"].iloc[0] if not mk_ts.empty else ""
-        fig     = make_trend_chart(pt_ts, sel_mk, mk_name, mk_unit)
+        _sel_row = pt_mkrs[pt_mkrs["marker_key"] == sel_mk]
+        _sel_status = _sel_row.iloc[0].get("status", "Normal") if not _sel_row.empty else "Normal"
+        _sel_accent = "#f87171" if _sel_status == "High" else "#60a5fa" if _sel_status == "Low" else "#38bdf8"
+        fig     = make_trend_chart(pt_ts, sel_mk, mk_name, mk_unit, accent=_sel_accent)
         if fig:
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
         mk_row = pt_mkrs[pt_mkrs["marker_key"] == sel_mk]
@@ -1791,12 +1927,84 @@ def render_about(patients: pd.DataFrame) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Sidebar
+# ---------------------------------------------------------------------------
+
+def render_sidebar(patients: pd.DataFrame) -> None:
+    """Styled sidebar matching the design's sidebar-brand + cohort legend."""
+    total_n = len(patients)
+    high_n  = int((patients["aki_risk_tier"] == "High").sum())
+    mod_n   = int((patients["aki_risk_tier"] == "Moderate").sum())
+    low_n   = int((patients["aki_risk_tier"] == "Low").sum())
+
+    with st.sidebar:
+        st.markdown(
+            '<div class="strata-sidebar">'
+
+            # ── Brand
+            '<div class="strata-sidebar-brand">'
+            '<div class="strata-sidebar-logo">'
+            '<div class="strata-sidebar-logo-inner"></div>'
+            '</div>'
+            '<div>'
+            '<div class="strata-sidebar-wordmark">Str<span class="accent">a</span>ta</div>'
+            '<div class="strata-sidebar-tagline">Clinical Signal Layer</div>'
+            '</div>'
+            '</div>'
+
+            # ── Cohort section label
+            '<div class="strata-section-label">Cohort</div>'
+
+            # ── Cohort rows
+            f'<div class="strata-cohort-row">'
+            f'<span class="strata-cohort-dot" style="background:#f87171;"></span>'
+            f'<span>High Risk</span>'
+            f'<span class="strata-cohort-count">{high_n}</span>'
+            f'</div>'
+
+            f'<div class="strata-cohort-row">'
+            f'<span class="strata-cohort-dot" style="background:#fbbf24;"></span>'
+            f'<span>Moderate</span>'
+            f'<span class="strata-cohort-count">{mod_n}</span>'
+            f'</div>'
+
+            f'<div class="strata-cohort-row">'
+            f'<span class="strata-cohort-dot" style="background:#4ade80;"></span>'
+            f'<span>Low</span>'
+            f'<span class="strata-cohort-count">{low_n}</span>'
+            f'</div>'
+
+            f'<div class="strata-cohort-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">'
+            f'<span style="color:var(--text-muted);font-size:11px;">Total admissions</span>'
+            f'<span class="strata-cohort-count">{total_n}</span>'
+            f'</div>'
+
+            # ── Footer
+            '<div class="strata-sidebar-foot">'
+            '<div class="strata-demo-pill">'
+            '<span class="strata-demo-dot"></span>'
+            '<span>DEMO MODE</span>'
+            '</div>'
+            '<div class="strata-safety-line">'
+            'Not diagnostic · For clinical review only.<br>'
+            'MIMIC-IV Clinical Demo v2.2'
+            '</div>'
+            '</div>'
+
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
 def main() -> None:
     with st.spinner("Loading Strata data…"):
         patients, markers, ts, aki = load_data()
+
+    render_sidebar(patients)
 
     # Fixed floating pill — position:fixed via CSS, column is just a render anchor
     _mode_label = "☀  Light mode" if st.session_state.get("dark_mode", False) else "🌙  Dark mode"
