@@ -118,9 +118,16 @@ CUSTOM_CSS = """
 html, body, [class*="css"] {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+  color: var(--text-1);
 }
-.stApp { background-color: var(--bg) !important; }
+.stApp { background-color: var(--bg) !important; color: var(--text-1) !important; }
 [data-testid="stHeader"] { background-color: var(--bg) !important; }
+/* Override Streamlit's hardcoded white text so light mode text is dark */
+[data-testid="stMarkdownContainer"],
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] span,
+[data-testid="stMarkdownContainer"] li { color: var(--text-1) !important; }
+p, li { color: var(--text-1); }
 section[data-testid="stSidebar"] { background-color: var(--bg-2) !important; }
 .block-container { padding-top: 1.5rem !important; }
 /* hide decorative toolbar elements and sidebar controls */
@@ -775,6 +782,57 @@ table.arch-table tbody tr.row-total { background: rgba(56,189,248,0.04); }
 .disclaimer-body { padding: 16px 20px; }
 .disclaimer-title { font-size: 11px; letter-spacing: 0.18em; color: var(--risk-mod); font-weight: 700; margin-bottom: 6px; text-transform: uppercase; }
 .disclaimer-text { font-size: 12.5px; color: var(--text-3); line-height: 1.55; max-width: 860px; }
+
+/* ── Theme toggle — fixed floating pill, always visible ── */
+@keyframes toggle-pulse {
+  0%   { box-shadow: 0 4px 20px rgba(0,0,0,0.30), 0 0 0 0   rgba(139,92,246,0.60), 0 0 10px 2px rgba(139,92,246,0.28); }
+  60%  { box-shadow: 0 4px 20px rgba(0,0,0,0.30), 0 0 0 8px rgba(139,92,246,0),    0 0 14px 4px rgba(139,92,246,0.16); }
+  100% { box-shadow: 0 4px 20px rgba(0,0,0,0.30), 0 0 0 0   rgba(139,92,246,0),    0 0 10px 2px rgba(139,92,246,0.28); }
+}
+div[data-testid="stToggle"] {
+  position: fixed !important;
+  top: 12px !important;
+  right: 20px !important;
+  z-index: 9999 !important;
+  display: inline-flex !important;
+  align-items: center;
+  background: var(--surface-2) !important;
+  border: 1.5px solid rgba(139,92,246,0.70) !important;
+  border-radius: 999px !important;
+  padding: 8px 18px 8px 14px !important;
+  width: fit-content !important;
+  cursor: pointer;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  animation: toggle-pulse 2.6s ease-in-out infinite;
+  transition: border-color 0.2s ease, background 0.2s ease,
+              box-shadow 0.2s ease, transform 0.15s ease;
+}
+div[data-testid="stToggle"]:hover {
+  animation: none !important;
+  border-color: rgba(139,92,246,0.95) !important;
+  background: rgba(139,92,246,0.16) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.35), 0 0 0 3px rgba(139,92,246,0.22), 0 0 20px 5px rgba(139,92,246,0.32) !important;
+  transform: scale(1.06);
+}
+div[data-testid="stToggle"]:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(139,92,246,0.45) !important;
+}
+div[data-testid="stToggle"] label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+}
+div[data-testid="stToggle"] label p {
+  color: var(--text-1) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  margin: 0 !important;
+}
 </style>
 """
 
@@ -1740,9 +1798,9 @@ def main() -> None:
     with st.spinner("Loading Strata data…"):
         patients, markers, ts, aki = load_data()
 
-    _, col_toggle = st.columns([10, 2])
-    with col_toggle:
-        st.toggle("Dark mode", key="dark_mode")
+    # Fixed floating pill — position:fixed via CSS, column is just a render anchor
+    _mode_label = "☀  Light mode" if st.session_state.get("dark_mode", False) else "🌙  Dark mode"
+    st.toggle(_mode_label, key="dark_mode")
 
     tab_overview, tab_detail, tab_explorer, tab_about = st.tabs([
         "Overview",
