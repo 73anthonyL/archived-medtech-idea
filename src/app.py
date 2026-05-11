@@ -32,7 +32,7 @@ st.set_page_config(
     page_title="Strata — Clinical Marker Intelligence",
     page_icon="⚕",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 if "dark_mode" not in st.session_state:
@@ -118,48 +118,58 @@ CUSTOM_CSS = """
 html, body, [class*="css"] {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+  color: var(--text-1);
 }
-.stApp { background-color: var(--bg) !important; }
+.stApp { background-color: var(--bg) !important; color: var(--text-1) !important; }
 [data-testid="stHeader"] { background-color: var(--bg) !important; }
+/* Override Streamlit's hardcoded white text so light mode text is dark */
+[data-testid="stMarkdownContainer"],
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] span,
+[data-testid="stMarkdownContainer"] li { color: var(--text-1) !important; }
+p, li { color: var(--text-1); }
 section[data-testid="stSidebar"] { background-color: var(--bg-2) !important; }
 .block-container { padding-top: 1.5rem !important; }
-/* hide the Streamlit toolbar/deploy/status bar so it doesn't overlap the tab row */
-[data-testid="stToolbar"]     { display: none !important; }
-[data-testid="stStatusWidget"]{ display: none !important; }
-[data-testid="stDeployButton"]{ display: none !important; }
+/* hide decorative toolbar elements and sidebar controls */
+[data-testid="stStatusWidget"]        { display: none !important; }
+[data-testid="stAppDeployButton"]     { display: none !important; }
+[data-testid="stMainMenuButton"]      { display: none !important; }
+[data-testid="stConnectionStatus"]    { display: none !important; }
+[data-testid="stToolbarActions"]      { display: none !important; }
+[data-testid="stExpandSidebarButton"] { display: none !important; }
+[data-testid="stSidebarCollapseButton"] { display: none !important; }
 
-/* ── Hamburger sidebar toggle ── */
-[data-testid="collapsedControl"] {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 2.2rem !important;
-  height: 2.2rem !important;
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-sm) !important;
-  top: 0.75rem !important;
-  left: 0.75rem !important;
-  cursor: pointer !important;
-  z-index: 999 !important;
+/* ── Sidebar content ── */
+.sidebar-brand { padding: 4px 0 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.sidebar-wordmark { font-size: 22px; font-weight: 800; letter-spacing: -0.04em; color: var(--text-1); line-height: 1; }
+.sidebar-wordmark span { background: var(--gradient-accent); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sidebar-tagline { font-size: 10px; letter-spacing: 0.16em; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; font-weight: 500; }
+.sidebar-section-label {
+  font-size: 9.5px; letter-spacing: 0.2em; color: var(--text-muted);
+  text-transform: uppercase; font-weight: 600; margin: 16px 0 8px 0;
 }
-[data-testid="collapsedControl"] svg { display: none !important; }
-[data-testid="collapsedControl"]::after {
-  content: "≡";
-  font-size: 1.3rem;
-  color: var(--text-3);
-  line-height: 1;
+.sidebar-stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+.sidebar-stat-label { font-size: 12px; color: var(--text-3); }
+.sidebar-stat-value { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text-2); }
+.sidebar-risk-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.risk-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 9px; border-radius: 999px;
+  font-size: 11px; font-weight: 600; font-family: var(--mono);
 }
-[data-testid="collapsedControl"]:hover { border-color: var(--border-2) !important; background: var(--surface-2) !important; }
-
-/* collapse button inside the open sidebar */
-[data-testid="baseButton-headerNoPadding"] {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-sm) !important;
-  color: var(--text-3) !important;
+.risk-chip-high   { background: rgba(248,113,113,0.12); color: var(--risk-high); border: 1px solid rgba(248,113,113,0.25); }
+.risk-chip-mod    { background: rgba(251,191,36,0.10); color: var(--risk-mod); border: 1px solid rgba(251,191,36,0.22); }
+.risk-chip-low    { background: rgba(74,222,128,0.10); color: var(--risk-low); border: 1px solid rgba(74,222,128,0.22); }
+.sidebar-nav-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+.sidebar-nav-icon { font-size: 14px; line-height: 1.4; flex-shrink: 0; }
+.sidebar-nav-text { font-size: 11.5px; color: var(--text-3); line-height: 1.45; }
+.sidebar-nav-title { font-weight: 600; color: var(--text-2); display: block; margin-bottom: 1px; }
+.sidebar-disclaimer {
+  background: rgba(251,191,36,0.05); border: 1px solid rgba(251,191,36,0.18);
+  border-radius: 8px; padding: 10px 12px; margin-top: 4px;
 }
-[data-testid="baseButton-headerNoPadding"]:hover { border-color: var(--border-2) !important; }
+.sidebar-disclaimer p { font-size: 10.5px; color: var(--text-muted); line-height: 1.5; margin: 0; }
+.sidebar-version { font-size: 10px; color: var(--text-faint); text-align: center; margin-top: 14px; font-family: var(--mono); }
 
 /* ── Tabs ── */
 .stTabs [data-baseweb="tab-list"] {
@@ -772,6 +782,57 @@ table.arch-table tbody tr.row-total { background: rgba(56,189,248,0.04); }
 .disclaimer-body { padding: 16px 20px; }
 .disclaimer-title { font-size: 11px; letter-spacing: 0.18em; color: var(--risk-mod); font-weight: 700; margin-bottom: 6px; text-transform: uppercase; }
 .disclaimer-text { font-size: 12.5px; color: var(--text-3); line-height: 1.55; max-width: 860px; }
+
+/* ── Theme toggle — fixed floating pill, always visible ── */
+@keyframes toggle-pulse {
+  0%   { box-shadow: 0 4px 20px rgba(0,0,0,0.30), 0 0 0 0   rgba(139,92,246,0.60), 0 0 10px 2px rgba(139,92,246,0.28); }
+  60%  { box-shadow: 0 4px 20px rgba(0,0,0,0.30), 0 0 0 8px rgba(139,92,246,0),    0 0 14px 4px rgba(139,92,246,0.16); }
+  100% { box-shadow: 0 4px 20px rgba(0,0,0,0.30), 0 0 0 0   rgba(139,92,246,0),    0 0 10px 2px rgba(139,92,246,0.28); }
+}
+div[data-testid="stToggle"] {
+  position: fixed !important;
+  top: 12px !important;
+  right: 20px !important;
+  z-index: 9999 !important;
+  display: inline-flex !important;
+  align-items: center;
+  background: var(--surface-2) !important;
+  border: 1.5px solid rgba(139,92,246,0.70) !important;
+  border-radius: 999px !important;
+  padding: 8px 18px 8px 14px !important;
+  width: fit-content !important;
+  cursor: pointer;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  animation: toggle-pulse 2.6s ease-in-out infinite;
+  transition: border-color 0.2s ease, background 0.2s ease,
+              box-shadow 0.2s ease, transform 0.15s ease;
+}
+div[data-testid="stToggle"]:hover {
+  animation: none !important;
+  border-color: rgba(139,92,246,0.95) !important;
+  background: rgba(139,92,246,0.16) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.35), 0 0 0 3px rgba(139,92,246,0.22), 0 0 20px 5px rgba(139,92,246,0.32) !important;
+  transform: scale(1.06);
+}
+div[data-testid="stToggle"]:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(139,92,246,0.45) !important;
+}
+div[data-testid="stToggle"] label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+}
+div[data-testid="stToggle"] label p {
+  color: var(--text-1) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  margin: 0 !important;
+}
 </style>
 """
 
@@ -1734,10 +1795,12 @@ def render_about(patients: pd.DataFrame) -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    st.sidebar.toggle("Dark mode", key="dark_mode")
-
     with st.spinner("Loading Strata data…"):
         patients, markers, ts, aki = load_data()
+
+    # Fixed floating pill — position:fixed via CSS, column is just a render anchor
+    _mode_label = "☀  Light mode" if st.session_state.get("dark_mode", False) else "🌙  Dark mode"
+    st.toggle(_mode_label, key="dark_mode")
 
     tab_overview, tab_detail, tab_explorer, tab_about = st.tabs([
         "Overview",
