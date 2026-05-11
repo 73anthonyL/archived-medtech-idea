@@ -32,19 +32,18 @@ st.set_page_config(
     page_title="Strata — Clinical Marker Intelligence",
     page_icon="⚕",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
+
+if "dark_mode" not in st.session_state:
+    st.session_state["dark_mode"] = False
 
 
 # ---------------------------------------------------------------------------
 # Custom CSS — ported from docs/design/styles.css
 # ---------------------------------------------------------------------------
 
-CUSTOM_CSS = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-
-/* ── Design tokens ── */
+_DARK_VARS = """<style>
 :root {
   --bg: #060d1b;
   --bg-2: #0a1322;
@@ -74,6 +73,46 @@ CUSTOM_CSS = """
   --radius-sm: 8px;
   --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 }
+</style>"""
+
+_LIGHT_VARS = """<style>
+:root {
+  --bg: #f0f4f8;
+  --bg-2: #e8eef5;
+  --surface: #ffffff;
+  --surface-2: #f4f7fb;
+  --surface-3: #eaf0f7;
+  --border: #cdd8e8;
+  --border-2: #b0c2d8;
+  --text-1: #0f172a;
+  --text-2: #1e293b;
+  --text-3: #334155;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --accent-blue: #2563eb;
+  --accent-blue-2: #3b82f6;
+  --accent-blue-deep: #1d4ed8;
+  --accent-cyan: #0891b2;
+  --accent-info: #7c3aed;
+  --risk-high: #dc2626;
+  --risk-high-2: #ef4444;
+  --risk-mod: #d97706;
+  --risk-mod-2: #b45309;
+  --risk-low: #15803d;
+  --risk-low-2: #16a34a;
+  --gradient-accent: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 45%, #0891b2 100%);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+/* override hardcoded dark bg values from CUSTOM_CSS */
+.hero-stat, .hero-watchlist { background: rgba(15,23,42,0.05) !important; }
+.mini-stat, .trend-explain  { background: rgba(15,23,42,0.05) !important; }
+</style>"""
+
+CUSTOM_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 /* ── Global ── */
 html, body, [class*="css"] {
@@ -84,6 +123,43 @@ html, body, [class*="css"] {
 [data-testid="stHeader"] { background-color: var(--bg) !important; }
 section[data-testid="stSidebar"] { background-color: var(--bg-2) !important; }
 .block-container { padding-top: 1.5rem !important; }
+/* hide the Streamlit toolbar/deploy/status bar so it doesn't overlap the tab row */
+[data-testid="stToolbar"]     { display: none !important; }
+[data-testid="stStatusWidget"]{ display: none !important; }
+[data-testid="stDeployButton"]{ display: none !important; }
+
+/* ── Hamburger sidebar toggle ── */
+[data-testid="collapsedControl"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 2.2rem !important;
+  height: 2.2rem !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  top: 0.75rem !important;
+  left: 0.75rem !important;
+  cursor: pointer !important;
+  z-index: 999 !important;
+}
+[data-testid="collapsedControl"] svg { display: none !important; }
+[data-testid="collapsedControl"]::after {
+  content: "≡";
+  font-size: 1.3rem;
+  color: var(--text-3);
+  line-height: 1;
+}
+[data-testid="collapsedControl"]:hover { border-color: var(--border-2) !important; background: var(--surface-2) !important; }
+
+/* collapse button inside the open sidebar */
+[data-testid="baseButton-headerNoPadding"] {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-3) !important;
+}
+[data-testid="baseButton-headerNoPadding"]:hover { border-color: var(--border-2) !important; }
 
 /* ── Tabs ── */
 .stTabs [data-baseweb="tab-list"] {
@@ -699,6 +775,8 @@ table.arch-table tbody tr.row-total { background: rgba(56,189,248,0.04); }
 </style>
 """
 
+_theme_css = _DARK_VARS if st.session_state.get("dark_mode", False) else _LIGHT_VARS
+st.markdown(_theme_css, unsafe_allow_html=True)
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 
@@ -1656,6 +1734,8 @@ def render_about(patients: pd.DataFrame) -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    st.sidebar.toggle("Dark mode", key="dark_mode")
+
     with st.spinner("Loading Strata data…"):
         patients, markers, ts, aki = load_data()
 
