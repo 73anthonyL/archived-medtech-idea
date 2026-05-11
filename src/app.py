@@ -787,33 +787,39 @@ section[data-testid="stSidebar"] .block-container { padding: 18px 14px 24px !imp
   font-size: 10px; color: var(--text-muted); letter-spacing: 0.06em; padding: 0 2px; line-height: 1.5;
 }
 
-/* ── Sidebar nav radio → vertical nav buttons ── */
-section[data-testid="stSidebar"] div[data-testid="stRadio"] { margin-bottom: 6px; }
-section[data-testid="stSidebar"] div[data-testid="stRadio"] > label { display: none !important; }
-section[data-testid="stSidebar"] div[data-testid="stRadio"] > div {
-  display: flex !important; flex-direction: column !important;
-  gap: 2px !important; background: transparent !important;
-  border: none !important; padding: 0 !important; width: 100% !important;
-}
-section[data-testid="stSidebar"] div[data-testid="stRadio"] > div > label {
-  display: flex !important; align-items: center !important;
-  background: transparent !important; border: 1px solid transparent !important;
-  border-radius: 8px !important; padding: 9px 12px !important;
+/* ── Sidebar nav buttons (dark mode defaults) ── */
+section[data-testid="stSidebar"] [data-testid^="nav_"] .stButton > button {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
+  color: #6b82a8 !important;
   font-size: 13px !important; font-weight: 500 !important;
-  color: var(--text-3) !important; cursor: pointer !important;
-  transition: all 0.14s ease !important; white-space: nowrap !important;
-  letter-spacing: 0.01em !important;
+  padding: 8px 14px !important;
+  text-align: left !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  transition: background 0.13s ease, color 0.13s ease, border-color 0.13s ease !important;
+  box-shadow: none !important;
 }
-section[data-testid="stSidebar"] div[data-testid="stRadio"] > div > label:hover {
-  background: rgba(56,189,248,0.05) !important; color: var(--text-2) !important;
+section[data-testid="stSidebar"] [data-testid^="nav_"] .stButton > button:hover {
+  color: #a8bdd6 !important;
+  background: rgba(56,189,248,0.05) !important;
+  border-color: rgba(56,189,248,0.08) !important;
 }
-section[data-testid="stSidebar"] div[data-testid="stRadio"] > div > label:has(input:checked) {
-  background: linear-gradient(90deg, rgba(56,189,248,0.10), rgba(56,189,248,0.03)) !important;
-  border-color: rgba(56,189,248,0.28) !important;
-  color: var(--text-1) !important; font-weight: 600 !important;
-  box-shadow: inset 0 0 0 1px rgba(56,189,248,0.06) !important;
+section[data-testid="stSidebar"] [data-testid^="nav_"][data-testid$="_active"] .stButton > button {
+  background: linear-gradient(90deg, rgba(34,211,238,0.13), rgba(56,189,248,0.05)) !important;
+  border-color: rgba(34,211,238,0.28) !important;
+  color: #f0f8ff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 0 18px rgba(34,211,238,0.09) !important;
 }
-section[data-testid="stSidebar"] div[data-testid="stRadio"] input[type="radio"] { display: none !important; }
+section[data-testid="stSidebar"] [data-testid^="nav_"] .stButton {
+  margin-bottom: 3px !important;
+}
+section[data-testid="stSidebar"] [data-testid^="nav_"] .stButton > button:focus:not(:active) {
+  box-shadow: none !important;
+  border-color: rgba(34,211,238,0.20) !important;
+}
 
 /* ── Sidebar user block ── */
 .sidebar-user-block {
@@ -2079,13 +2085,154 @@ def render_about(patients: pd.DataFrame) -> None:
 # Sidebar
 # ---------------------------------------------------------------------------
 
-_NAV_MAP: dict[str, str] = {
-    "▣  Overview":         "Overview",
-    "◉  Patient Detail":   "Patient Detail",
-    "◈  Marker Explorer":  "Marker Explorer",
-    "○  About":            "About",
+_NAV_PAGES: list[str] = ["Overview", "Patient Detail", "Marker Explorer", "About"]
+
+# Lucide-style SVG icons (stroke-based, inherits currentColor)
+_ICON_GRID = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"'
+    ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+    ' stroke-linejoin="round">'
+    '<rect x="3" y="3" width="7" height="7" rx="1"/>'
+    '<rect x="14" y="3" width="7" height="7" rx="1"/>'
+    '<rect x="14" y="14" width="7" height="7" rx="1"/>'
+    '<rect x="3" y="14" width="7" height="7" rx="1"/>'
+    '</svg>'
+)
+_ICON_USER = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"'
+    ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+    ' stroke-linejoin="round">'
+    '<circle cx="12" cy="7" r="4"/>'
+    '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>'
+    '</svg>'
+)
+_ICON_TREND = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"'
+    ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+    ' stroke-linejoin="round">'
+    '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>'
+    '<polyline points="16 7 22 7 22 13"/>'
+    '</svg>'
+)
+_ICON_INFO = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"'
+    ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"'
+    ' stroke-linejoin="round">'
+    '<circle cx="12" cy="12" r="10"/>'
+    '<path d="M12 16v-4"/><path d="M12 8h.01"/>'
+    '</svg>'
+)
+_NAV_DEFS: list[tuple[str, str]] = [
+    ("Overview",        _ICON_GRID),
+    ("Patient Detail",  _ICON_USER),
+    ("Marker Explorer", _ICON_TREND),
+    ("About",           _ICON_INFO),
+]
+
+_NAV_ICONS: dict[str, str] = {
+    "Overview":        ":material/grid_view:",
+    "Patient Detail":  ":material/person:",
+    "Marker Explorer": ":material/trending_up:",
+    "About":           ":material/info:",
 }
-_PAGE_TO_OPT: dict[str, str] = {v: k for k, v in _NAV_MAP.items()}
+
+
+def _build_sidebar_nav_html(current_page: str, total_n: int) -> str:
+    """Return a self-contained HTML string for the custom sidebar nav."""
+    items: list[str] = []
+    for i, (label, icon) in enumerate(_NAV_DEFS):
+        active_cls = " active" if label == current_page else ""
+        badge = (
+            f'<span class="nav-badge">{total_n}</span>'
+            if label == "Overview" else ""
+        )
+        items.append(
+            f'<div class="nav-item{active_cls}" onclick="selectNav({i})">'
+            f'<span class="nav-icon">{icon}</span>'
+            f'<span class="nav-label">{label}</span>'
+            f'{badge}'
+            f'</div>'
+        )
+    items_html = "\n".join(items)
+
+    # JS: uses React's native setter so Streamlit picks up the change
+    js = """
+function selectNav(idx) {
+  try {
+    var sidebar = window.parent.document.querySelector('[data-testid="stSidebar"]');
+    var radioGroup = sidebar ? sidebar.querySelector('[data-testid="stRadio"]') : null;
+    var radios = radioGroup ? radioGroup.querySelectorAll('input[type="radio"]') : [];
+    var input = radios[idx];
+    if (!input) return;
+    var setter = Object.getOwnPropertyDescriptor(
+      window.parent.HTMLInputElement.prototype, 'checked'
+    ).set;
+    setter.call(input, true);
+    input.dispatchEvent(new Event('change', {bubbles: true}));
+  } catch(e) { console.warn('nav click error', e); }
+}
+"""
+
+    css = """
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: transparent !important; overflow: hidden; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       -webkit-font-smoothing: antialiased; }
+
+.nav-wrapper { display: flex; flex-direction: column; gap: 3px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  color: #6b82a8;
+  font-size: 13px; font-weight: 500; letter-spacing: 0.01em;
+  transition: background 0.13s ease, color 0.13s ease, border-color 0.13s ease;
+  user-select: none;
+}
+.nav-item:hover {
+  color: #a8bdd6;
+  background: rgba(56,189,248,0.05);
+}
+.nav-item.active {
+  background: linear-gradient(90deg, rgba(34,211,238,0.13), rgba(56,189,248,0.05));
+  border-color: rgba(34,211,238,0.28);
+  color: #f0f8ff;
+  font-weight: 600;
+  box-shadow: 0 0 18px rgba(34,211,238,0.09);
+}
+
+.nav-icon {
+  display: flex; align-items: center; flex-shrink: 0;
+  color: #6b82a8;
+  transition: color 0.13s ease;
+}
+.nav-item.active .nav-icon { color: #22d3ee; }
+.nav-item:hover .nav-icon  { color: #a8bdd6; }
+
+.nav-label { flex: 1; white-space: nowrap; }
+
+.nav-badge {
+  font-family: 'JetBrains Mono', 'Fira Mono', monospace;
+  font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums;
+  color: rgba(34,211,238,0.80);
+  background: rgba(34,211,238,0.08);
+  border: 1px solid rgba(34,211,238,0.22);
+  padding: 1px 7px; border-radius: 999px;
+  margin-left: auto;
+}
+"""
+
+    return (
+        "<!DOCTYPE html><html><head>"
+        f"<style>{css}</style>"
+        "</head><body>"
+        f'<div class="nav-wrapper">{items_html}</div>'
+        f"<script>{js}</script>"
+        "</body></html>"
+    )
 
 
 def render_sidebar(patients: pd.DataFrame) -> None:
@@ -2114,16 +2261,18 @@ def render_sidebar(patients: pd.DataFrame) -> None:
         # ── Workspace nav
         st.markdown('<div class="strata-section-label">Workspace</div>', unsafe_allow_html=True)
         current_page = st.session_state.get("active_page", "Overview")
-        default_opt  = _PAGE_TO_OPT.get(current_page, list(_NAV_MAP.keys())[0])
-        nav_opts     = list(_NAV_MAP.keys())
-        selected_opt = st.radio(
-            "Navigation",
-            nav_opts,
-            index=nav_opts.index(default_opt),
-            label_visibility="collapsed",
-            key="sidebar_nav_radio",
-        )
-        st.session_state.active_page = _NAV_MAP.get(selected_opt, "Overview")
+        for label in _NAV_PAGES:
+            safe = label.replace(" ", "_")
+            suffix = "active" if label == current_page else "inactive"
+            with st.container(key=f"nav_{safe}_{suffix}"):
+                if st.button(
+                    label,
+                    key=f"nav_btn_{safe}",
+                    icon=_NAV_ICONS.get(label, ""),
+                    use_container_width=True,
+                ):
+                    st.session_state.active_page = label
+                    st.rerun()
 
         # ── Cohort summary
         st.markdown(

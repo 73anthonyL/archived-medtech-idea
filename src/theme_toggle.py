@@ -92,6 +92,25 @@ section[data-testid="stSidebar"] {
 .nav-item.active {
   background: linear-gradient(90deg, rgba(2,132,199,0.10), rgba(2,132,199,0.02));
   border-color: rgba(2,132,199,0.30);
+  color: #0f172a;
+}
+
+/* ── Sidebar nav buttons — light mode ── */
+section[data-testid="stSidebar"] [data-testid^="nav_"] .stButton > button {
+  color: #475569 !important;
+  box-shadow: none !important;
+}
+section[data-testid="stSidebar"] [data-testid^="nav_"] .stButton > button:hover {
+  color: #1e293b !important;
+  background: rgba(2,132,199,0.06) !important;
+  border-color: rgba(2,132,199,0.12) !important;
+}
+section[data-testid="stSidebar"] [data-testid^="nav_"][data-testid$="_active"] .stButton > button {
+  background: linear-gradient(90deg, rgba(2,132,199,0.10), rgba(2,132,199,0.02)) !important;
+  border-color: rgba(2,132,199,0.30) !important;
+  color: #0f172a !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
 }
 .sidebar-demo { background: rgba(2,132,199,0.06); border-color: rgba(2,132,199,0.25); }
 .topnav { background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.85) 100%); }
