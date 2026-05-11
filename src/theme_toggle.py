@@ -209,7 +209,15 @@ body {
 
 
 def get_theme() -> str:
-    """Return current theme — 'dark' (default) or 'light'."""
+    """Return current theme — 'dark' (default) or 'light'.
+
+    Reads the toggle widget key directly so this returns the correct value even
+    when called before render_theme_toggle() in the same script run (e.g. during
+    CSS injection at the top of app.py).  The widget key is populated by
+    Streamlit from the browser state before any Python code runs.
+    """
+    if "strata_theme_toggle" in st.session_state:
+        return "light" if st.session_state["strata_theme_toggle"] else "dark"
     return st.session_state.get("strata_theme", "dark")
 
 
